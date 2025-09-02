@@ -1,1 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>CS180 — Project 0: Becoming Friends With Your Camera</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js?config=default"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        h1 { text-align: center; }
+        .container { margin: 0 auto; padding: 60px 20%; }
+        figure { text-align: center; }
+        img { display: inline-block; max-width: 100%; height: auto; }
+        body { font-family: 'Inter', sans-serif; }
+        code {
+            background-color: #f2f2f2; padding: 2px 4px; border-radius: 4px; font-family: monospace;
+        }
+        pre code { display: block; padding: 10px 20px; overflow-x: auto; }
+        summary {
+            cursor: pointer; padding: 8px; background-color: #f2f2f2; border: 1px solid #ccc;
+            border-radius: 6px; padding-left: 12px; position: relative;
+        }
+        details { margin-bottom: 12px; }
+        table {
+            width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 40px;
+            border: 1px solid #ccc; border-radius: 12px; overflow: hidden;
+        }
+        th, td { border: none; padding: 12px; text-align: left; vertical-align: top; }
+        th { background-color: #fadee0; }
+        ul.resources li { margin-bottom: 8px; }
+        td.date-column { width: 220px; background-color: #fadee0; }
+        .week-header { background-color: #fadee0; font-weight: bold; font-size: 1.1em; }
+        .subheader-box {
+            background-color: #f2f2f2; border-left: 4px solid #444; padding: 10px 16px;
+            margin: 1em 0; border-radius: 6px; font-weight: 600;
+        }
+        .question-box {
+            padding: 10px 16px; margin: 1em 0; border-radius: 6px; font-weight: 600;
+            color: #8b0000; background-color: #fce4e4;
+        }
+        .gallery-2 {
+            display: grid; grid-template-columns: 1fr; gap: 12px; margin: 10px 0;
+        }
+        @media (min-width: 900px) { .gallery-2 { grid-template-columns: 1fr 1fr; } }
+        .caption { text-align: center; margin-top: 10px; color: #555; }
+        .top-banner {
+            display: flex; justify-content: center; gap: 40px; margin: 1.5em 0 3em 0;
+            font-weight: 600; font-size: 1rem;
+        }
+        .top-banner a:link { color: #8b0000; text-decoration: none; padding: 8px 16px; border-radius: 8px; transition: background-color 0.3s ease; }
+        .top-banner a:visited { color: #ec7699; }
+        .top-banner a:hover { color: #ec7699; background-color: #fce4e4; animation: jello 1.5s ease-in-out infinite; }
+        .top-banner a:active { color: #8b0000; }
+        .top-banner a:focus { outline: none; background-color: #fce4e4; }
+        a:link { color: #8b0000; } a:visited { color: #ec7699; } a:hover { color: #ec7699; } a:active { color: #8b0000; }
+        @keyframes jello {
+            0% { transform: none; }
+            15% { transform: skewX(-12deg) skewY(-12deg); }
+            30% { transform: skewX(6deg) skewY(6deg); }
+            45% { transform: skewX(-3deg) skewY(-3deg); }
+            60% { transform: skewX(1deg) skewY(1deg); }
+            75% { transform: skewX(-0.5deg) skewY(-0.5deg); }
+            100% { transform: none; }
+        }
+        @media print {
+            a[href^="file://"], .MathJax_Message, .mjx-chtml, .MathJax { display: none !important; }
+            a::after { content: "" !important; }
+            @page { margin: 1in 1in; }
+            .container { margin: 0 auto; padding: 0 0; }
+            code { background-color: #fadee0; padding: 2px 4px; border-radius: 4px; font-family: monospace; tab-size: 2; }
+            pre code { white-space: pre-wrap !important; overflow-x: visible !important; max-width: 100% !important; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>CS180 Project 0: Becoming Friends With Your Camera</h1>
+    <h2 style="text-align:center">UC Berkeley • Fall 2025</h2>
+    <h3 style="text-align:center">Nandini Velinedi</h3>
 
+    <div class="top-banner">
+        <a href="../../index.html">← Back to Portfolio</a>
+        <!-- add any external links if you want (write-up, slides, etc.) -->
+    </div>
+
+    <h2 id="part1">Part 1 — Selfie: Wrong Way vs Right Way</h2>
+    <div class="subheader-box">
+        Goal: demonstrate framing/lighting choices and their impact on portrait quality.
+    </div>
+    <p>
+        These are portraits of my friend in CS180 who’s taking the class with me. In the first photo I’m a bit too close and the angle/light feel harsher, so it’s not super flattering. In the second photo I backed up to eye level with softer light and a cleaner wall which is more natural.
+    </p>
+    <div class="gallery-2">
+        <figure>
+            <img src="swetha_near.png" alt="Selfie — wrong way">
+            <figcaption class="caption">“Wrong Way”</figcaption>
+        </figure>
+        <figure>
+            <img src="swetha_far.png" alt="Selfie — right way">
+            <figcaption class="caption">“Right Way”</figcaption>
+        </figure>
+    </div>
+
+    <h2 id="part2">Part 2 — Architectural Perspective Compression</h2>
+    <div class="subheader-box">
+        Goal: compare wide vs telephoto perspective and comment on “compression.”
+    </div>
+    <p>
+        I took these pictures while walking home: in the first picture I’m close with a wider view, so the background stretches away. In the second picture I stepped back and zoomed in, and everything looks more compressed. 
+    </p>
+    <div class="gallery-2">
+        <figure>
+            <img src="near.png" alt="Architecture 1">
+            <figcaption class="caption">Near</figcaption>
+        </figure>
+        <figure>
+            <img src="far-zoom.png" alt="Architecture 2">
+            <figcaption class="caption">Far + Zoom </figcaption>
+        </figure>
+    </div>
+
+    <h2 id="part3">Part 3 — The Dolly Zoom</h2>
+    <div class="subheader-box">
+        Goal: keep subject size constant while changing focal length and camera distance.
+    </div>
+    <p>
+        I shot a quick dolly-zoom here using different objects in my apartment: I moved backward while zooming in to keep the subject about the same size. The background stretches and slides in, giving that cinematic, slightly trippy vibe. 
+    </p>
+    <figure>
+        <div style="max-width:720px;margin:0 auto;">
+          <div style="position:relative;padding-bottom:75%;height:0;overflow:hidden;border:1px solid #ccc;border-radius:8px;background:#fafafa;">
+            <iframe
+              title="Dolly zoom GIF"
+              src="https://imgflip.com/embed/a4q59w"
+              frameborder="0"
+              style="position:absolute;top:0;left:0;width:100%;height:100%;"
+              allowfullscreen
+            ></iframe>
+          </div>
+        </div>
+        <figcaption class="caption">Dolly zoom sequence.</figcaption>
+      </figure>
+</div>
+</body>
+</html>

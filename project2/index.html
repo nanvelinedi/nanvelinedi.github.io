@@ -9,6 +9,9 @@
         .container { margin: 0 auto; padding: 60px 20%; }
         figure { text-align: center; }
         img { display: inline-block; max-width: 100%; height: auto; }
+        .img-row {display: flex; gap: 16px; justify-content: center; align-items: flex-start; flex-wrap: nowrap; }
+        .img-row figure {margin: 0; text-align: center; max-width: 300px; }
+        .img-row img {width: 100%; height: auto; display: block; border-radius: 8px; }
         body { font-family: 'Inter', sans-serif; }
         code { background-color: #f2f2f2; padding: 2px 4px; border-radius: 4px; font-family: monospace; }
         table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 40px; border: 1px solid #ccc; border-radius: 12px; overflow: hidden; }
@@ -45,16 +48,23 @@
             pre code { white-space: pre-wrap !important; overflow-x: visible !important; max-width: 100% !important; }
         }
         .gallery-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 14px 0; }
-    
-    .gallery-3.thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; justify-content: center; align-items: start; margin: 14px 0; }
-  .gallery-3.thumbs figure { margin: 0; }
-  .gallery-3.thumbs img { width: 100%; height: auto; object-fit: contain; border-radius: 6px; display: block; }
-  .caption { font-size: 0.9rem; }
-    .gallery-2.thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; justify-content: center; align-items: start; margin: 14px 0; }
-  .gallery-3.thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; justify-content: center; align-items: start; margin: 14px 0; }
-  .thumbs figure { margin: 0; }
-  .thumbs img { width: 100%; height: auto; object-fit: contain; border-radius: 6px; display: block; }
-  .caption { font-size: 0.9rem; }
+        .gallery-3.thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; justify-content: center; align-items: start; margin: 14px 0; }
+        .gallery-3.thumbs figure { margin: 0; }
+        .gallery-3.thumbs img { width: 100%; height: auto; object-fit: contain; border-radius: 6px; display: block; }
+        .caption { font-size: 0.9rem; }
+        .gallery-2.thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 16px; justify-content: center; align-items: start; margin: 14px 0; }
+        .gallery-3.thumbs { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 16px; justify-content: center; align-items: start; margin: 14px 0; }
+        .thumbs figure { margin: 0; }
+        .thumbs img { width: 100%; height: auto; object-fit: contain; border-radius: 6px; display: block; }
+        .caption { font-size: 0.9rem; }
+        code { background:transparent !important; padding:0 !important; border-radius:0 !important; }
+        pre, pre code { background:transparent !important; }
+        pre { margin:0; white-space:pre-wrap; overflow:visible; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; font-size:14px; line-height:1.5; tab-size:2; }
+        .code-grid { display:grid; grid-template-columns:1fr; gap:16px; }
+        @media (min-width:900px){ .code-grid { grid-template-columns:1fr; } }
+        </style> 
+    </head>
+        
   </style>
 </head>
 <body>
@@ -71,20 +81,77 @@
 
     <h2>Part 1.1: Convolution</h2>
     <p>I implemented convolution in NumPy two ways: a slow 4-loop version and a faster 2-loop version that uses <code>np.sum(region*kernel)</code> with zero-padding. To match <code>scipy.signal.convolve2d</code>, the kernel must be flipped (otherwise it’s cross-correlation). Under the same settings, outputs match SciPy, but SciPy is much faster, and zero-padding can cause edge artifacts; reflect or symmetric padding reduces those.</p>
-<div class="gallery-3 thumbs">
+    
+<div class="img-row">
   <figure>
-    <img src="p1_1_box9x9.png" alt="9x9 box filter (blur)" />
+    <img src="p1_1_box9x9.png" alt="9x9 box filter (blur)">
     <figcaption class="caption">9×9 Box Filter (Blur)</figcaption>
   </figure>
   <figure>
-    <img src="p1_1_dx.png" alt="Dx response (vertical edges)" />
+    <img src="p1_1_dx.png" alt="Dx response (vertical edges)">
     <figcaption class="caption">Dx (Vertical Edges)</figcaption>
   </figure>
   <figure>
-    <img src="p1_1_dy.png" alt="Dy response (horizontal edges)" />
+    <img src="p1_1_dy.png" alt="Dy response (horizontal edges)">
     <figcaption class="caption">Dy (Horizontal Edges)</figcaption>
   </figure>
 </div>
+<h3 id="code-1-1">Convolution code</h3>
+    <div class="code-grid">
+        <div class="code-card">
+          <div class="code-head">Four loops:</div>
+          <pre><code>
+            #padding
+            if padding:
+            pad_h = kernel.shape[0] // 2 # Half kernel height
+            pad_w = kernel.shape[1] // 2 # Half kernel width
+            padded_image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant')
+            else:
+            padded_image = image
+            
+            
+            #output dimensions
+            out_h = padded_image.shape[0] - kernel.shape[0] + 1
+            out_w = padded_image.shape[1] - kernel.shape[1] + 1
+            output = np.zeros((out_h, out_w))
+            
+            
+            #four nested for loops
+            for out_y in range(out_h): # For each output row
+            for out_x in range(out_w): # For each output column
+            for ker_y in range(kernel.shape[0]): # For each kernel row
+            for ker_x in range(kernel.shape[1]): # For each kernel column
+            # Multiply corresponding pixels and accumulate
+            output[out_y, out_x] += padded_image[out_y + ker_y, out_x + ker_x] * kernel[ker_y, ker_x]
+            return output</code></pre>
+        </div>
+        <div class="code-card">
+          <div class="code-head">Two loops:</div>
+          <pre><code> 
+            #padding
+            if padding:
+            pad_h = kernel.shape[0] // 2 # Half kernel height
+            pad_w = kernel.shape[1] // 2 # Half kernel width
+            padded_image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant')
+            else:
+            padded_image = image
+            
+            
+            #output dimensions
+            out_h = padded_image.shape[0] - kernel.shape[0] + 1
+            out_w = padded_image.shape[1] - kernel.shape[1] + 1
+            output = np.zeros((out_h, out_w))
+            
+            
+            #two nested for loops
+            for out_y in range(out_h):
+            for out_x in range(out_w):
+            region = padded_image[out_y:out_y + kernel.shape[0],
+            out_x:out_x + kernel.shape[1]]
+            output[out_y, out_x] = np.sum(region * kernel)
+            return output</code></pre>
+        </div>
+      </div>
 
     <h2>Part 1.2: Partial Derivatives and Edges</h2>
     <p>I used Dx = [1,0,-1] and Dy = [1,0,-1]<sup>T</sup> to get Ix and Iy, computed the gradient magnitude as sqrt(Ix² + Iy²), then thresholded. I set t = 0.3 (image scaled to [0,1]) as it cuts noise but keeps the main edges. I learned that lower gets messy, higher drops weak lines.</p>
@@ -134,7 +201,7 @@
   </figure>
 </div>
 
-    <h2>Part 2.3 + 2.4: Multiresolution Blending</h2>
+    <h2>Part 2.3: Gaussian and Laplacian Stacks + 2.4: Multiresolution Blending</h2>
     <p>I visualized Gaussian and Laplacian stacks for the Apple + Orange pair and confirmed I could reconstruct the originals almost perfectly from their Laplacian stacks. Then I used multiresolution blending with a Gaussian mask pyramid to combine images at each level, which removes sharp seams and makes the blends look natural. The vertical blend came out clean, and I also made two custom blends, one with a straight horizontal mask and one with an irregular circular mask, to show how different masks affect the smoothness and style of the transition.</p>
     <div class="gallery-3 thumbs">
         <figure>

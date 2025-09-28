@@ -122,7 +122,8 @@
                     for ker_y in range(kernel.shape[0]): # For each kernel row
                         for ker_x in range(kernel.shape[1]): # For each kernel column
                             # Multiply corresponding pixels and accumulate
-                            output[out_y, out_x] += padded_image[out_y + ker_y, out_x + ker_x] * kernel[ker_y, ker_x]
+                            output[out_y, out_x] += padded_image[out_y + ker_y, out_x + ker_x] * 
+                            kernel[ker_y, ker_x]
             return output</code></pre>
         </div>
         <div class="code-card">

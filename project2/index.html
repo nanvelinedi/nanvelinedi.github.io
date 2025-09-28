@@ -103,11 +103,11 @@
           <pre><code>
             #padding
             if padding:
-            pad_h = kernel.shape[0] // 2 # Half kernel height
-            pad_w = kernel.shape[1] // 2 # Half kernel width
-            padded_image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant')
+                pad_h = kernel.shape[0] // 2 # Half kernel height
+                pad_w = kernel.shape[1] // 2 # Half kernel width
+                padded_image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant')
             else:
-            padded_image = image
+                padded_image = image
             
             
             #output dimensions
@@ -118,11 +118,11 @@
             
             #four nested for loops
             for out_y in range(out_h): # For each output row
-            for out_x in range(out_w): # For each output column
-            for ker_y in range(kernel.shape[0]): # For each kernel row
-            for ker_x in range(kernel.shape[1]): # For each kernel column
-            # Multiply corresponding pixels and accumulate
-            output[out_y, out_x] += padded_image[out_y + ker_y, out_x + ker_x] * kernel[ker_y, ker_x]
+                for out_x in range(out_w): # For each output column
+                    for ker_y in range(kernel.shape[0]): # For each kernel row
+                        for ker_x in range(kernel.shape[1]): # For each kernel column
+                            # Multiply corresponding pixels and accumulate
+                            output[out_y, out_x] += padded_image[out_y + ker_y, out_x + ker_x] * kernel[ker_y, ker_x]
             return output</code></pre>
         </div>
         <div class="code-card">
@@ -130,11 +130,11 @@
           <pre><code> 
             #padding
             if padding:
-            pad_h = kernel.shape[0] // 2 # Half kernel height
-            pad_w = kernel.shape[1] // 2 # Half kernel width
-            padded_image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant')
+                pad_h = kernel.shape[0] // 2 # Half kernel height
+                pad_w = kernel.shape[1] // 2 # Half kernel width
+                padded_image = np.pad(image, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant')
             else:
-            padded_image = image
+                padded_image = image
             
             
             #output dimensions
@@ -145,10 +145,9 @@
             
             #two nested for loops
             for out_y in range(out_h):
-            for out_x in range(out_w):
-            region = padded_image[out_y:out_y + kernel.shape[0],
-            out_x:out_x + kernel.shape[1]]
-            output[out_y, out_x] = np.sum(region * kernel)
+                for out_x in range(out_w):
+                    region = padded_image[out_y:out_y + kernel.shape[0],out_x:out_x + kernel.shape[1]]
+                    output[out_y, out_x] = np.sum(region * kernel)
             return output</code></pre>
         </div>
       </div>

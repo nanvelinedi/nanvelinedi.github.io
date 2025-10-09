@@ -1,1 +1,385 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>CS180 — Project 3: Image Warping & Mosaicing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    h1 { text-align: center; }
+    .container { margin: 0 auto; padding: 60px 12%; max-width: 1100px; }
+    figure { text-align: center; }
+    img { display: inline-block; max-width: 100%; height: auto; }
+    body { font-family: 'Inter', sans-serif; line-height: 1.55; }
+    code { background-color: #f2f2f2; padding: 2px 4px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+    details { margin: 14px 0; }
+    summary {
+      cursor: pointer; padding: 10px 14px; background-color: #f2f2f2; border: 1px solid #ccc;
+      border-radius: 8px; font-weight: 600;
+    }
 
+    /* banners & links */
+    .top-banner {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; margin: 1.5em 0 2.2em 0;
+      font-weight: 600; font-size: 1rem;
+    }
+    .top-banner a { color: #8b0000; text-decoration: none; padding: 8px 14px; border-radius: 10px; border: 1px solid #f3b8c6; }
+    .top-banner a:hover { color: #ec7699; background-color: #fce4e4; animation: jello 1.3s ease-in-out; }
+    a:link { color: #8b0000; } a:visited { color: #ec7699; } a:hover { color: #ec7699; } a:active { color: #8b0000; }
+
+    /* section headers */
+    .subheader-box {
+      background-color: #f2f2f2; border-left: 4px solid #444; padding: 12px 16px;
+      margin: 1em 0; border-radius: 8px; font-weight: 600;
+    }
+    .question-box {
+      padding: 10px 16px; margin: 1em 0; border-radius: 8px; font-weight: 600;
+      color: #8b0000; background-color: #fce4e4;
+    }
+
+    /* grids & galleries */
+    .pair { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .triplet { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 900px) {
+      .pair { grid-template-columns: 1fr 1fr; }
+      .triplet { grid-template-columns: 1fr 1fr 1fr; }
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+      .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    }
+    .card {
+      border: 1px solid #e8e8e8; border-radius: 12px; padding: 12px; background: #fff;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    }
+    .caption { text-align: center; margin-top: 8px; color: #555; font-size: 0.95rem; }
+
+    /* small uniform thumbs for sources */
+    .thumb-img { width: 260px; height: 180px; object-fit: cover; display: block; margin: 0 auto; border-radius: 8px; }
+
+    /* tables */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 16px 0 28px 0; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; }
+    th, td { border: none; padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { background-color: #fadee0; }
+    .results-table td img { width: 260px; height: 180px; object-fit: cover; border-radius: 8px; display: block; }
+
+    /* code blocks */
+    pre { background: #f7f7f7; border: 1px solid #ddd; border-radius: 10px; padding: 12px 14px; }
+    pre code { white-space: pre-wrap; }
+
+    @keyframes jello {
+      0% { transform: none; } 15% { transform: skewX(-12deg) skewY(-12deg); }
+      30% { transform: skewX(6deg) skewY(6deg); } 45% { transform: skewX(-3deg) skewY(-3deg); }
+      60% { transform: skewX(1deg) skewY(1deg); } 75% { transform: skewX(-0.5deg) skewY(-0.5deg); }
+      100% { transform: none; }
+    }
+
+    @media print {
+      .top-banner { display: none; }
+      a[href^="file://"], .MathJax_Message, .mjx-chtml, .MathJax { display: none !important; }
+      a::after { content: "" !important; }
+      @page { margin: 1in 1in; }
+      .container { padding: 0; }
+      pre { white-space: pre-wrap !important; overflow-x: visible !important; max-width: 100% !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>CS180 Project 3: Image Warping &amp; Mosaicing</h1>
+  <h2 style="text-align:center">UC Berkeley • Fall 2025</h2>
+  <h3 style="text-align:center">Nandini Velinedi</h3>
+
+  <div class="top-banner">
+    <a href="../index.html">← Back to Portfolio</a>
+    <a href="#a1">A.1 Shoot the Pictures</a>
+    <a href="#a2">A.2 Recover Homographies</a>
+    <a href="#a3">A.3 Warp Images</a>
+    <a href="#a4">A.4 Blend into a Mosaic</a>
+  </div>
+
+  <!-- ======================= A1 ======================= -->
+  <h2 id="a1" style="text-align:center; margin-top:28px;">A.1: Shoot the Pictures</h2>
+  <p>
+    I shot three rotating-in-place (fixed center of projection) pairs with about 40% overlap, constant focal length,
+    and locked exposure/white balance.
+  </p>
+
+  <div class="subheader-box">Set 1: Taken on my walk home</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="thumb-img" src="b1.jpeg" alt="b1 — frame 1 (same COP)">
+      <figcaption class="caption">Frame 1</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="thumb-img" src="b2.jpeg" alt="b2 — frame 2">
+      <figcaption class="caption">Frame 2</figcaption>
+    </figure>
+  </div>
+
+  <div class="subheader-box">Set 2: My messy kitchen</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="thumb-img" src="k1.jpg" alt="k1 — frame 1 (same COP)">
+      <figcaption class="caption">Frame 1</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="thumb-img" src="k2.jpg" alt="k2 — frame 2">
+      <figcaption class="caption">Frame 2</figcaption>
+    </figure>
+  </div>
+
+  <div class="subheader-box">Set 3: View from my apartment</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="thumb-img" src="c1.jpg" alt="c1 — frame 1 (same COP)">
+      <figcaption class="caption">Frame 1</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="thumb-img" src="c2.jpg" alt="c2 — frame 2">
+      <figcaption class="caption">Frame 2</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= A2 ======================= -->
+  <h2 id="a2" style="text-align:center; margin-top:28px;">A.2: Homography Matrix Computation</h2>
+  <p>
+    To recover the homography between two images, I manually selected corresponding points on the same
+    planar surface. Using these points, I built a system of equations based on the Direct Linear
+    Transform (DLT) method. I solved for the best-fit homography matrix <code>H</code> using least squares
+    and normalized it so that the bottom-right value is 1. This matrix allows mapping points from one image
+    to the other through a projective transformation.
+  </p>
+
+  <div class="card" style="margin-top:14px;">
+    <div class="caption" style="text-align:center; font-weight:600;">Equations</div>
+    <pre><code>Homography relation:
+H · [x, y, 1]^T = [u, v, 1]^T
+
+System of equations for each correspondence (x, y) ↔ (u, v):
+[-x, -y, -1,  0,  0,  0, x·u, y·u, u]
+[ 0,  0,  0, -x, -y, -1, x·v, y·v, v]
+
+Solve for h in A·h = 0 using least squares (SVD):
+h = last column of V (from SVD of A)
+
+Reshape to get 3×3 homography matrix H:
+H = [[h1, h2, h3],
+     [h4, h5, h6],
+     [h7, h8,  1]]</code></pre>
+  </div>
+
+  <h3 style="text-align:center; margin-top:28px;">Corresponding Points and Homography Results</h3>
+  <!-- Set 1 -->
+<div class="subheader-box" style="text-align:center;">Set 1: b1 ↔ b2</div>
+<div class="card">
+  <figure>
+    <img src="b_correspondences.png" alt="b1 and b2 correspondences">
+    <figcaption class="caption">Correspondence visualization (b1 → b2)</figcaption>
+  </figure>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <pre><code>[RANSAC im1->im2] Inliers: 14 / 15
+
+[Homography im1->im2]
+[[   1.497719   -0.005972 -290.585729]
+ [   0.173895    1.36003   -62.790251]
+ [   0.000724    0.000136    1.      ]]</code></pre>
+</div>
+
+<!-- Set 2 -->
+<div class="subheader-box" style="text-align:center; margin-top:22px;">Set 2: k1 ↔ k2</div>
+<div class="card">
+  <figure>
+    <img src="k_correspondences.png" alt="k1 and k2 correspondences">
+    <figcaption class="caption">Correspondence visualization (k1 → k2)</figcaption>
+  </figure>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <pre><code>[RANSAC im1->im2] Inliers: 6 / 15
+
+[Homography im1->im2]
+[[    2.118114    -0.023425 -3786.692086]
+ [    0.82101      1.962354 -1655.504792]
+ [    0.000461    -0.000004     1.      ]]</code></pre>
+</div>
+
+<!-- Set 3 -->
+<div class="subheader-box" style="text-align:center; margin-top:22px;">Set 3: c1 ↔ c2</div>
+<div class="card">
+  <figure>
+    <img src="c_correspondences.png" alt="c1 and c2 correspondences">
+    <figcaption class="caption">Correspondence visualization (c1 → c2)</figcaption>
+  </figure>
+</div>
+
+<div class="card" style="margin-top:12px;">
+  <pre><code>[RANSAC im1->im2] Inliers: 5 / 11
+
+[Homography im1->im2]
+[[    1.478645    -0.04108  -1458.546437]
+ [    0.190885     1.279408  -427.943051]
+ [    0.000147    -0.000015     1.      ]]</code></pre>
+</div>
+
+<p>
+  Across all sets, RANSAC effectively filtered out outliers, producing stable homographies. The first set achieved the highest inlier ratio, indicating well-aligned points and minimal parallax. Sets two and three had fewer inliers due to larger camera motion and weaker feature overlap.
+</p>
+  <!-- ======================= A3 ======================= -->
+  <h2 id="a3" style="text-align:center; margin-top:28px;">A.3: Warp the Images</h2>
+  <p>
+    To warp each image, I implemented inverse warping using both nearest neighbor and bilinear interpolation.
+    Given a homography matrix <code>H</code>, I used its inverse to map every pixel in the output image back
+    to its corresponding position in the source image. Nearest neighbor uses the closest pixel value, while
+    bilinear interpolation averages the four surrounding pixels for smoother results.
+    I applied this to two rectification examples, a book and a refrigerator, to transform the perspective
+    so that the selected planar surfaces appear front facing.
+  </p>
+
+  <div class="card" style="margin-top:14px;">
+    <div class="caption" style="text-align:center; font-weight:600;">Equations</div>
+    <pre><code>Inverse warping:
+[x, y, 1]^T = H⁻¹ · [x', y', 1]^T
+
+Nearest Neighbor:
+I'(x', y') = I(round(x), round(y))
+
+Bilinear Interpolation:
+I'(x', y') = (1 - dx)(1 - dy)·I(x0, y0)
+            + dx(1 - dy)·I(x1, y0)
+            + (1 - dx)dy·I(x0, y1)
+            + dx·dy·I(x1, y1)</code></pre>
+  </div>
+
+  <h3 style="text-align:center; margin-top:28px;">Rectification Results</h3>
+
+  <div class="subheader-box" style="text-align:center;">Rectified Book</div>
+  <div class="card">
+    <figure>
+      <img src="rect_book_panel.png" alt="Book rectification panel">
+      <figcaption class="caption">Rectification of a book cover</figcaption>
+    </figure>
+  </div>
+
+  <div class="subheader-box" style="text-align:center;">Rectified Refrigerator</div>
+  <div class="card">
+    <figure>
+      <img src="rect_fridge_panel.png" alt="Refrigerator rectification panel">
+      <figcaption class="caption">Rectification of a refrigerator</figcaption>
+    </figure>
+  </div>
+
+  <div class="subheader-box" style="text-align:center;">Nearest Neighbor vs. Bilinear Interpolation</div>
+  <p>
+    The results show that nearest neighbor and bilinear interpolation produce noticeably different outcomes.
+    Nearest neighbor warping runs faster because it simply picks the closest pixel, but it often leads to blocky
+    textures and jagged edges. Bilinear interpolation is slower since it averages surrounding pixel values, yet it
+    produces smoother, sharper, and more realistic results. The tradeoff is clear: nearest neighbor is better for speed,
+    while bilinear interpolation offers higher visual quality and cleaner rectifications, especially for detailed or
+    text heavy images.
+  </p>
+
+  <!-- ======================= A4 ======================= -->
+  <h2 id="a4" style="text-align:center; margin-top:28px;">A.4: Blend the Images into a Mosaic</h2>
+  <p>
+    I created three panoramas using weighted averaging to reduce seams. After estimating a homography for each pair,
+    I inverse warped the source image onto the reference canvas, built a soft mask, and blended the overlapping regions
+    with a feathered alpha so edges fade smoothly.
+  </p>
+
+  <div class="card" style="margin-top:12px;">
+    <div class="caption" style="text-align:center; font-weight:600;">Procedure</div>
+    <ol style="margin:10px 18px;">
+      <li>Estimate the homography from the clicked correspondences.</li>
+      <li>Inverse warp the source image into the reference frame and record a binary valid mask.</li>
+      <li>Convert the binary mask into a soft alpha using a cosine falloff toward the borders.</li>
+      <li>Blend overlapping pixels with weighted averaging; then crop to the union of valid pixels.</li>
+    </ol>
+  </div>
+
+  <div class="card" style="margin-top:12px;">
+    <div class="caption" style="text-align:center; font-weight:600;">Blending formula</div>
+    <pre><code>I_out = (α_ref · I_ref + α_src · I_src) / (α_ref + α_src + ε)
+α_src = soft mask on the warped image
+α_ref = ones on the reference image (or a soft mask if desired)</code></pre>
+  </div>
+
+  <h3 style="text-align:center; margin-top:28px;">Mosaics and Masks</h3>
+
+  <!-- Set 1 -->
+  <div class="subheader-box" style="text-align:center;">Set b: Sources and Result</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="thumb-img" src="b1.jpeg" alt="b1 source">
+      <figcaption class="caption">source 1</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="thumb-img" src="b2.jpeg" alt="b2 source">
+      <figcaption class="caption">source 2</figcaption>
+    </figure>
+  </div>
+  <div class="pair" style="margin-top:10px;">
+    <figure class="card">
+      <img src="b_panorama.png" alt="b panorama">
+      <figcaption class="caption">Blended panorama</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="b_panorama_mask.png" alt="b panorama mask">
+      <figcaption class="caption">Mask used for cropping and diagnostics</figcaption>
+    </figure>
+  </div>
+
+  <!-- Set 2 -->
+  <div class="subheader-box" style="text-align:center; margin-top:24px;">Set k: Sources and Result</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="thumb-img" src="k1.jpg" alt="k1 source">
+      <figcaption class="caption">source 1</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="thumb-img" src="k2.jpg" alt="k2 source">
+      <figcaption class="caption">source 2</figcaption>
+    </figure>
+  </div>
+  <div class="pair" style="margin-top:10px;">
+    <figure class="card">
+      <img src="k_panorama.png" alt="k panorama">
+      <figcaption class="caption">Blended panorama</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="k_panorama_mask.png" alt="k panorama mask">
+      <figcaption class="caption">Mask used for cropping and diagnostics</figcaption>
+    </figure>
+  </div>
+
+  <!-- Set 3 -->
+  <div class="subheader-box" style="text-align:center; margin-top:24px;">Set c: Sources and Result</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="thumb-img" src="c1.jpg" alt="c1 source">
+      <figcaption class="caption">source 1</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="thumb-img" src="c2.jpg" alt="c2 source">
+      <figcaption class="caption">source 2</figcaption>
+    </figure>
+  </div>
+  <div class="pair" style="margin-top:10px;">
+    <figure class="card">
+      <img src="c_panorama.png" alt="c panorama">
+      <figcaption class="caption">Blended panorama</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="c_panorama_mask.png" alt="c panorama mask">
+      <figcaption class="caption">Mask used for cropping and diagnostics</figcaption>
+    </figure>
+  </div>
+
+  <p>
+    Weighted averaging removes sharp seams and exposure steps. The soft mask fades contributions near image borders,
+    which reduces ghosting and preserves straight lines across overlaps.
+  </p>
+</div>
+</body>
+</html>

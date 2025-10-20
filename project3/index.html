@@ -81,6 +81,18 @@
       .container { padding: 0; }
       pre { white-space: pre-wrap !important; overflow-x: visible !important; max-width: 100% !important; }
     }
+  
+    .b4img {
+      width: 100%;
+      height: 420px;          
+      object-fit: contain;    
+      background: #000;        
+      border-radius: 8px;
+    }
+    @media (max-width: 899px) {
+      .b4img { height: 320px; } 
+    }
+
   </style>
 </head>
 <body>
@@ -95,6 +107,10 @@
     <a href="#a2">A.2 Recover Homographies</a>
     <a href="#a3">A.3 Warp Images</a>
     <a href="#a4">A.4 Blend into a Mosaic</a>
+    <a href="#b1">B.1 Shoot the Pictures</a>
+    <a href="#b2">B.2 Recover Homographies</a>
+    <a href="#b3">B.3 Warp Images</a>
+    <a href="#b4">B.4 Blend into a Mosaic</a>
   </div>
 
   <!-- ======================= A1 ======================= -->
@@ -107,7 +123,7 @@
   <div class="subheader-box">Set 1: Taken on my walk home</div>
   <div class="pair">
     <figure class="card">
-      <img class="thumb-img" src="b1.jpeg" alt="b1 — frame 1 (same COP)">
+      <img class="thumb-img" src="b1.jpeg" alt="b1 — frame 1">
       <figcaption class="caption">Frame 1</figcaption>
     </figure>
     <figure class="card">
@@ -119,11 +135,11 @@
   <div class="subheader-box">Set 2: My messy kitchen</div>
   <div class="pair">
     <figure class="card">
-      <img class="thumb-img" src="k1.JPG" alt="k1 — frame 1 (same COP)">
+      <img class="thumb-img" src="k1.jpg" alt="k1 — frame 1">
       <figcaption class="caption">Frame 1</figcaption>
     </figure>
     <figure class="card">
-      <img class="thumb-img" src="k2.JPG" alt="k2 — frame 2">
+      <img class="thumb-img" src="k2.jpg" alt="k2 — frame 2">
       <figcaption class="caption">Frame 2</figcaption>
     </figure>
   </div>
@@ -131,7 +147,7 @@
   <div class="subheader-box">Set 3: View from my apartment</div>
   <div class="pair">
     <figure class="card">
-      <img class="thumb-img" src="c1.JPG" alt="c1 — frame 1 (same COP)">
+      <img class="thumb-img" src="c1.JPG" alt="c1 — frame 1">
       <figcaption class="caption">Frame 1</figcaption>
     </figure>
     <figure class="card">
@@ -380,6 +396,217 @@ I'(x', y') = (1 - dx)(1 - dy)·I(x0, y0)
     Weighted averaging removes sharp seams and exposure steps. The soft mask fades contributions near image borders,
     which reduces ghosting and preserves straight lines across overlaps.
   </p>
+  
+    <!-- ======================= B1 ======================= -->
+  <h2 id="b1" style="text-align:center; margin-top:48px;">B.1: Harris Corner Detection</h2>
+  <p>
+    I ran a single-scale Harris detector (no subpixel) and then applied Adaptive Non-Maximal Suppression (ANMS).
+    Below show corners overlaid on each image, <em>before</em> and <em>after</em> ANMS.
+  </p>
+
+  <div class="subheader-box">Detected corners (no ANMS)</div>
+  <div class="pair">
+    <figure class="card">
+      <img src="B1_corners_no_ANMS_img1.png" alt="Corners overlaid on Image 1 (no ANMS)">
+      <figcaption class="caption">Image 1 — Harris corners (no ANMS)</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="B1_corners_no_ANMS_img2.png" alt="Corners overlaid on Image 2 (no ANMS)">
+      <figcaption class="caption">Image 2 — Harris corners (no ANMS)</figcaption>
+    </figure>
+  </div>
+
+  <div class="subheader-box" style="margin-top:18px;">Detected corners (with ANMS)</div>
+  <div class="pair">
+    <figure class="card">
+      <img src="B1_corners_ANMS_img1.png" alt="Corners overlaid on Image 1 (ANMS)">
+      <figcaption class="caption">Image 1 — ANMS-filtered corners</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="B1_corners_ANMS_img2.png" alt="Corners overlaid on Image 2 (ANMS)">
+      <figcaption class="caption">Image 2 — ANMS-filtered corners</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= B2 ======================= -->
+  <h2 id="b2" style="text-align:center; margin-top:48px;">B.2: Feature Descriptor Extraction</h2>
+  <p>
+    For each ANMS point, I sample a blurred <code>40×40</code> window and downsample to a bias/gain-normalized
+    <code>8×8</code> descriptor (axis-aligned; no rotation invariance). The yellow boxes below indicate the
+    <code>40×40</code> support used for several example keypoints.
+  </p>
+
+  <div class="pair">
+    <figure class="card">
+      <img src="B2_example_40x40_boxes_img1.png" alt="40x40 boxes over keypoints on image 1">
+      <figcaption class="caption">Image 1 — example descriptor windows</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="B2_example_40x40_boxes_img2.png" alt="40x40 boxes over keypoints on image 2">
+      <figcaption class="caption">Image 2 — example descriptor windows</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= B3 ======================= -->
+  <h2 id="b3" style="text-align:center; margin-top:48px;">B.3: Feature Matching</h2>
+  <p>
+    I compute L2 distances between descriptors and keep matches using Lowe’s ratio test
+    (best/second-best &lt; <code>ratio</code>). Then I visualize all candidate matches and split them later
+    into inliers/outliers after RANSAC.
+  </p>
+
+  <div class="card">
+    <figure>
+      <img src="B3_matches_ratio.png" alt="All candidate matches (Lowe ratio)">
+      <figcaption class="caption">Candidate matches from Lowe ratio test</figcaption>
+    </figure>
+  </div>
+
+   <!-- ======================= B4 — Three Pairs ======================= -->
+  <h2 id="b4-sets" style="text-align:center; margin-top:48px;">B.4: RANSAC for Robust Homography — Three Image Pairs</h2>
+  <p>
+    For each pair, I run 4-point RANSAC (normalized DLT; symmetric reprojection error) to estimate a robust homography,
+    then inverse-warp and feather-blend into a mosaic. Below I show the inliers/outliers, mosaics, masks, and a summary panel
+    for each set.
+  </p>
+  <!-- ========== Set b ========== -->
+<div class="subheader-box" style="text-align:center;">Set b: Sources and Result</div>
+<div class="pair">
+  <figure class="card">
+    <img class="thumb-img" src="b1.jpeg" alt="b1 source">
+    <figcaption class="caption">source 1</figcaption>
+  </figure>
+  <figure class="card">
+    <img class="thumb-img" src="b2.jpeg" alt="b2 source">
+    <figcaption class="caption">source 2</figcaption>
+  </figure>
+</div>
+
+<div class="pair" style="margin-top:10px;">
+  <figure class="card">
+    <img src="B4_mosaic_cropped.png" alt="Set b panorama (cropped)">
+    <figcaption class="caption">Blended panorama (cropped)</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="B4_mosaic_mask_cropped.png" alt="Set b mask (cropped)">
+    <figcaption class="caption">Mask used for cropping and diagnostics</figcaption>
+  </figure>
+</div>
+
+<div class="grid-3" style="margin-top:10px;display:grid; grid-template-columns: 1fr 1fr; justify-items:center;">
+  <figure class="card">
+    <img src="B4_inlier_matches.png" alt="Set b inlier matches">
+    <figcaption class="caption">RANSAC inlier matches</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="B4_outlier_matches.png" alt="Set b outlier matches">
+    <figcaption class="caption">RANSAC outlier matches</figcaption>
+  </figure>
+</div>
+
+<div class="pair" style="margin-top:10px;">
+  <figure class="card">
+    <img src="B4_mosaic.png" alt="Set b full mosaic">
+    <figcaption class="caption">Full mosaic (uncropped)</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="B4_mosaic_mask.png" alt="Set b full mask">
+    <figcaption class="caption">Full mask (uncropped)</figcaption>
+  </figure>
+</div>
+
+
+<!-- ========== Set k ========== -->
+<div class="subheader-box" style="text-align:center; margin-top:24px;">Set k: Sources and Result</div>
+<div class="pair">
+  <figure class="card">
+    <img class="thumb-img" src="k1.JPG" alt="k1 source">
+    <figcaption class="caption">source 1</figcaption>
+  </figure>
+  <figure class="card">
+    <img class="thumb-img" src="k2.JPG" alt="k2 source">
+    <figcaption class="caption">source 2</figcaption>
+  </figure>
+</div>
+
+<div class="pair" style="margin-top:10px;">
+  <figure class="card">
+    <img src="B4_mosaic_cropped_3.png" alt="Set k panorama (cropped)">
+    <figcaption class="caption">Blended panorama (cropped)</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="B4_mosaic_mask_cropped_3.png" alt="Set k mask (cropped)">
+    <figcaption class="caption">Mask used for cropping and diagnostics</figcaption>
+  </figure>
+</div>
+
+<div class="grid-3" style="margin-top:10px;display:grid; grid-template-columns: 1fr 1fr; justify-items:center;">
+  <figure class="card">
+    <img src="B4_inlier_matches_3.png" alt="Set k inlier matches">
+    <figcaption class="caption">RANSAC inlier matches</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="B4_outlier_matches_3.png" alt="Set k outlier matches">
+    <figcaption class="caption">RANSAC outlier matches</figcaption>
+  </figure>
+</div>
+
+<div class="pair" style="margin-top:10px;">
+  <figure class="card">
+    <img src="B4_mosaic_3.png" alt="Set k full mosaic">
+    <figcaption class="caption">Full mosaic (uncropped)</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="B4_mosaic_mask_3.png" alt="Set k full mask">
+    <figcaption class="caption">Full mask (uncropped)</figcaption>
+  </figure>
+</div>
+
+
+<!-- ========== Set c ========== -->
+<div class="subheader-box" style="text-align:center; margin-top:24px;">Set c: Sources and Result</div>
+<div class="pair">
+  <figure class="card">
+    <img class="thumb-img" src="c1.JPG" alt="c1 source">
+    <figcaption class="caption">source 1</figcaption>
+  </figure>
+  <figure class="card">
+    <img class="thumb-img" src="c2.JPG" alt="c2 source">
+    <figcaption class="caption">source 2</figcaption>
+  </figure>
+</div>
+
+<div class="pair" style="margin-top:10px;">
+  <figure class="card">
+    <img src="B4_mosaic_cropped_2.png" alt="Set c panorama (cropped)">
+    <figcaption class="caption">Blended panorama (cropped)</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="B4_mosaic_mask_cropped_2.png" alt="Set c mask (cropped)">
+    <figcaption class="caption">Mask used for cropping and diagnostics</figcaption>
+  </figure>
+</div>
+
+<div class="grid-3" style="margin-top:10px; display:grid; grid-template-columns: 1fr 1fr; justify-items:center;">
+  <figure class="card">
+    <img src="B4_inlier_matches_2.png" alt="Set c inlier matches">
+    <figcaption class="caption">RANSAC inlier matches</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="B4_outlier_matches_2.png" alt="Set c outlier matches">
+    <figcaption class="caption">RANSAC outlier matches</figcaption>
+  </figure>
+</div>
+
+<div class="pair" style="margin-top:10px;">
+  <figure class="card">
+    <img src="B4_mosaic_2.png" alt="Set c full mosaic">
+    <figcaption class="caption">Full mosaic (uncropped)</figcaption>
+  </figure>
+  <figure class="card">
+    <img src="B4_mosaic_mask_2.png" alt="Set c full mask">
+    <figcaption class="caption">Full mask (uncropped)</figcaption>
+  </figure>
 </div>
 </body>
 </html>

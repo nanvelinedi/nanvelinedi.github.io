@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>CS180 — Project 4: Neural Fields & NeRF</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    h1 { text-align: center; }
+    .container { margin: 0 auto; padding: 60px 12%; max-width: 1100px; }
+    figure { text-align: center; }
+    img { display: inline-block; max-width: 100%; height: auto; }
+    body { font-family: 'Inter', sans-serif; line-height: 1.55; }
+    code {
+      background-color: #f2f2f2; padding: 2px 4px; border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    details { margin: 14px 0; }
+    summary {
+      cursor: pointer; padding: 10px 14px; background-color: #f2f2f2; border: 1px solid #ccc;
+      border-radius: 8px; font-weight: 600;
+    }
+
+    /* banners & links */
+    .top-banner {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; margin: 1.5em 0 2.2em 0;
+      font-weight: 600; font-size: 1rem;
+    }
+    .top-banner a {
+      color: #8b0000; text-decoration: none; padding: 8px 14px; border-radius: 10px;
+      border: 1px solid #f3b8c6;
+    }
+    .top-banner a:hover { color: #ec7699; background-color: #fce4e4; animation: jello 1.3s ease-in-out; }
+    a:link { color: #8b0000; }
+    a:visited { color: #ec7699; }
+    a:hover { color: #ec7699; }
+    a:active { color: #8b0000; }
+
+    /* section headers */
+    .subheader-box {
+      background-color: #f2f2f2; border-left: 4px solid #444; padding: 12px 16px;
+      margin: 1em 0; border-radius: 8px; font-weight: 600;
+    }
+    .question-box {
+      padding: 10px 16px; margin: 1em 0; border-radius: 8px; font-weight: 600;
+      color: #8b0000; background-color: #fce4e4;
+    }
+
+    /* grids & galleries */
+    .pair { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .triplet { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 900px) {
+      .pair { grid-template-columns: 1fr 1fr; }
+      .triplet { grid-template-columns: 1fr 1fr 1fr; }
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+      .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    }
+    .card {
+      border: 1px solid #e8e8e8; border-radius: 12px; padding: 12px; background: #fff;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    }
+    .caption { text-align: center; margin-top: 8px; color: #555; font-size: 0.95rem; }
+
+    /* small uniform thumbs for sources */
+    .thumb-img {
+      width: 260px; height: 180px; object-fit: cover; display: block; margin: 0 auto; border-radius: 8px;
+    }
+
+    /* tables */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 16px 0 28px 0; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; }
+    th, td { border: none; padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { background-color: #fadee0; }
+    .results-table td img { width: 260px; height: 180px; object-fit: cover; border-radius: 8px; display: block; }
+
+    /* code blocks */
+    pre { background: #f7f7f7; border: 1px solid #ddd; border-radius: 10px; padding: 12px 14px; }
+    pre code { white-space: pre-wrap; }
+
+    @keyframes jello {
+      0% { transform: none; }
+      15% { transform: skewX(-12deg) skewY(-12deg); }
+      30% { transform: skewX(6deg) skewY(6deg); }
+      45% { transform: skewX(-3deg) skewY(-3deg); }
+      60% { transform: skewX(1deg) skewY(1deg); }
+      75% { transform: skewX(-0.5deg) skewY(-0.5deg); }
+      100% { transform: none; }
+    }
+
+    @media print {
+      .top-banner { display: none; }
+      a[href^="file://"], .MathJax_Message, .mjx-chtml, .MathJax { display: none !important; }
+      a::after { content: "" !important; }
+      @page { margin: 1in 1in; }
+      .container { padding: 0; }
+      pre { white-space: pre-wrap !important; overflow-x: visible !important; max-width: 100% !important; }
+    }
+
+    .b4img {
+      width: 100%;
+      height: 420px;
+      object-fit: contain;
+      background: #000;
+      border-radius: 8px;
+    }
+    @media (max-width: 899px) {
+      .b4img { height: 320px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>CS180 Project 4: Neural Radiance Fields</h1>
+  <h2 style="text-align:center">UC Berkeley • Fall 2025</h2>
+  <h3 style="text-align:center">Nandini Velinedi</h3>
+
+  <div class="top-banner">
+    <a href="../index.html">← Back to Portfolio</a>
+    <a href="#p1-overview">Part 1 Overview</a>
+    <a href="#p1-fox">Part 1 — Fox</a>
+    <a href="#p1-own">Part 1 — Own Image</a>
+    <a href="#p1-sweep">Part 1 — Hyperparameter Sweep</a>
+    <a href="#p2-overview">Part 2 Overview</a>
+    <a href="#p2-rays">2.1–2.3 Rays &amp; Sampling</a>
+    <a href="#p2-network">2.4 NeRF Network</a>
+    <a href="#p2-training">2.5 Training &amp; PSNR</a>
+    <a href="#p2-novel">Novel View Video</a>
+  </div>
+
+  <!-- ======================= PART 1 OVERVIEW ======================= -->
+  <h2 id="p1-overview" style="text-align:center; margin-top:28px;">Part 1: Fit a Neural Field to a 2D Image</h2>
+  <p>
+    In Part 1 I implemented a simple neural field that maps 2D pixel coordinates
+    <code>(x, y)</code> to RGB values. The model is a fully connected MLP with sinusoidal
+    positional encoding (PE) on the input coordinates. I trained the network with mean
+    squared error and reported Peak Signal-to-Noise Ratio (PSNR) over iterations.
+  </p>
+
+  <div class="card" style="margin-top:16px;">
+    <div class="caption" style="text-align:center; font-weight:600;">Model architecture</div>
+    <pre><code>Input: 2D pixel coordinate (x, y) normalized to [0, 1]
+Positional Encoding (L frequency bands):
+PE(x) = [x, sin(2⁰πx), cos(2⁰πx), …, sin(2ᴸ⁻¹πx), cos(2ᴸ⁻¹πx)]
+
+MLP2D:
+- Depth: 4 hidden layers
+- Width: 128 channels (default)
+- Activation: ReLU
+- Output: 3D RGB with Sigmoid in [0, 1]
+
+Loss: MSE between predicted RGB and ground-truth pixel color
+Optimizer: Adam (lr = 1e-2)
+Metric: PSNR = 10 · log₁₀(1 / MSE)</code></pre>
+  </div>
+
+  <!-- ======================= PART 1 — FOX IMAGE ======================= -->
+  <h2 id="p1-fox" style="text-align:center; margin-top:32px;">Part 1.1: Training on the Fox Image</h2>
+  <p>
+    I first trained on the provided fox image. At each iteration I uniformly sample 10k pixels,
+    apply positional encoding, and update the MLP. Below are reconstructions at different
+    iterations compared to the original.
+  </p>
+
+  <div class="subheader-box" style="text-align:center;">Training progression — fox</div>
+  <div class="triplet">
+    <figure class="card">
+      <img src="out_part1_fox/recon_0100.png" alt="Fox reconstruction at 100 iters">
+      <figcaption class="caption">100 iterations</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="out_part1_fox/recon_1000.png" alt="Fox reconstruction at 1000 iters">
+      <figcaption class="caption">1000 iterations</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="out_part1_fox/recon_3000.png" alt="Fox reconstruction at 3000 iters">
+      <figcaption class="caption">3000 iterations</figcaption>
+    </figure>
+  </div>
+
+  <div class="pair" style="margin-top:12px;">
+    <figure class="card">
+      <img src="out_part1_fox/recon_final.png" alt="Final fox reconstruction">
+      <figcaption class="caption">Final reconstruction</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="data/fox.jpg" alt="Original fox image">
+      <figcaption class="caption">Original</figcaption>
+    </figure>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <figure>
+      <img src="out_part1_fox/psnr_curve.png" alt="PSNR curve for fox training">
+      <figcaption class="caption">PSNR curve for fox training</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 1 — OWN IMAGE ======================= -->
+  <h2 id="p1-own" style="text-align:center; margin-top:40px;">Part 1.2: Training on My Own Image</h2>
+  <p>
+    I repeated the same pipeline on my own photo (<code>pizza.jpeg</code>). This image has more
+    high-frequency texture (cheese, toppings, plate edges), so it is harder to fit than the fox.
+    The model still converges to a good reconstruction but needs more iterations to clean up fine details.
+  </p>
+
+  <div class="subheader-box" style="text-align:center;">Training progression — my image</div>
+  <div class="triplet">
+    <figure class="card">
+      <img src="out_part1_pizza/recon_0100.png" alt="Pizza reconstruction at 100 iters">
+      <figcaption class="caption">100 iterations</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="out_part1_pizza/recon_1000.png" alt="Pizza reconstruction at 1000 iters">
+      <figcaption class="caption">1000 iterations</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="out_part1_pizza/recon_3000.png" alt="Pizza reconstruction at 3000 iters">
+      <figcaption class="caption">3000 iterations</figcaption>
+    </figure>
+  </div>
+
+  <div class="pair" style="margin-top:12px;">
+    <figure class="card">
+      <img src="out_part1_pizza/recon_final.png" alt="Final pizza reconstruction">
+      <figcaption class="caption">Final reconstruction</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="data/pizza.jpeg" alt="Original pizza image">
+      <figcaption class="caption">Original</figcaption>
+    </figure>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <figure>
+      <img src="out_part1_pizza/psnr_curve.png" alt="PSNR curve for pizza image">
+      <figcaption class="caption">PSNR curve for my image</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 1 — SWEEP ======================= -->
+  <h2 id="p1-sweep" style="text-align:center; margin-top:44px;">Part 1.3: Hyperparameter Sweep — Width &amp; PE Frequency</h2>
+  <p>
+    Finally I swept over two choices of width (<code>64</code>, <code>256</code>) and two choices of
+    maximum positional encoding frequency (<code>L = 4</code>, <code>L = 10</code>) on the fox image.
+    Lower <code>L</code> and smaller width behave like a low-pass filter and blur out fine details,
+    while larger values allow the network to represent sharper textures.
+  </p>
+
+  <div class="card">
+    <figure>
+      <img src="out_part1_sweep/grid_w-L.png" alt="2x2 grid for width and frequency sweep">
+      <figcaption class="caption">
+        2×2 grid of final reconstructions: rows = width {64, 256}, columns = L {4, 10}.
+      </figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 2 OVERVIEW ======================= -->
+  <h2 id="p2-overview" style="text-align:center; margin-top:52px;">Part 2: Neural Radiance Field from Multi-view Images</h2>
+  <p>
+    In Part 2 I extended the 2D neural field idea to a full Neural Radiance Field (NeRF) on the Lego
+    dataset. Given calibrated multi-view images and camera poses, I learn a function
+    <code>F(x, d) → (σ, RGB)</code> that maps a 3D point and viewing direction to volume density
+    and view-dependent color. Rendering is done with differentiable volume rendering along camera rays.
+  </p>
+
+  <div class="card" style="margin-top:12px;">
+    <div class="caption" style="text-align:center; font-weight:600;">Data loading</div>
+    <pre><code>lego_200x200.npz:
+- images_train: (100, 200, 200, 3)
+- c2ws_train:   (100, 4, 4)
+- images_val:   (10, 200, 200, 3)
+- c2ws_val:     (10, 4, 4)
+- c2ws_test:    (60, 4, 4)  # for video
+- focal:        scalar focal length
+
+I compute the intrinsic matrix:
+K = [[f, 0, W/2],
+     [0, f, H/2],
+     [0, 0,   1]]</code></pre>
+  </div>
+
+  <!-- ======================= PART 2 — RAYS & SAMPLING ======================= -->
+  <h2 id="p2-rays" style="text-align:center; margin-top:44px;">2.1–2.3: Rays, Sampling, and Dataloader</h2>
+
+  <div class="subheader-box">2.1: Pixel → Camera → World</div>
+  <p>
+    I implemented <code>pixel_to_camera(K, uv, s)</code> to lift integer pixel coordinates to
+    camera space by undoing the pinhole projection. Then
+    <code>transform_points(c2w, Xc)</code> converts 3D points from camera space to world space
+    using homogeneous coordinates and the provided <code>c2w</code> matrices. The ray origin is the
+    camera center <code>c2w[:3, 3]</code> and the direction is the normalized vector from the origin
+    to the world-space point at depth 1.
+  </p>
+
+  <div class="subheader-box">2.2: Sampling Points along Rays</div>
+  <p>
+    For each ray I sample <code>n_samples = 64</code> depths uniformly between <code>near=2.0</code>
+    and <code>far=6.0</code>. During training I add stratified perturbations within each interval to
+    avoid always sampling the same 3D points. At test time I turn off perturbation for deterministic
+    rendering.
+  </p>
+
+  <div class="subheader-box">2.3: RaysData Dataloader &amp; Visualizations</div>
+  <p>
+    My <code>RaysData</code> class flattens all pixels from all training images and, when sampled,
+    returns a batch of ray origins, directions, and target RGB values. To debug coordinate
+    conventions I used the provided <code>viser</code> visualizer to render camera frustums, rays,
+    and 3D samples.
+  </p>
+
+  <div class="pair" style="margin-top:10px;">
+    <figure class="card">
+      <img src="out_lego/rays_multi_cams.png" alt="Multi-camera rays and samples">
+      <figcaption class="caption">Multi-view visualization: cameras + 100 sampled rays</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="out_lego/rays_single_cam.png" alt="Single camera rays and samples">
+      <figcaption class="caption">Single-camera visualization to verify frustum alignment</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 2 — NeRF NETWORK ======================= -->
+  <h2 id="p2-network" style="text-align:center; margin-top:48px;">2.4: Neural Radiance Field Network</h2>
+  <p>
+    The NeRF MLP takes a 3D sample location and a 3D viewing direction. I apply high-frequency
+    positional encoding to the position (<code>L_xyz = 10</code>) and a lower-frequency encoding
+    to the viewing direction (<code>L_dir = 4</code>). The network first predicts a density
+    <code>σ ≥ 0</code> and a feature vector, then conditions the final RGB on both the feature
+    and the encoded direction.
+  </p>
+
+  <div class="card">
+    <div class="caption" style="text-align:center; font-weight:600;">NeRF architecture (simplified)</div>
+    <pre><code>Input:
+- 3D position x (world-space), encoded with PE (L_xyz = 10)
+- 3D viewing direction d, unit-normalized and PE-encoded (L_dir = 4)
+
+Backbone:
+- 8 hidden layers, width = 256
+- ReLU activations
+- Skip connection: concatenate encoded x into the middle layer
+
+Heads:
+- σ(x):   Linear → ReLU  (scalar density)
+- feat(x): Linear       (feature vector)
+- rgb(x, d): concat(feat, dir_enc) → Linear → Sigmoid (3D color)</code></pre>
+  </div>
+
+  <!-- ======================= PART 2 — VOLUME RENDERING & TRAINING ======================= -->
+  <h2 id="p2-training" style="text-align:center; margin-top:48px;">2.5: Volume Rendering, Training Curve, and Validation PSNR</h2>
+  <p>
+    For each ray I run the NeRF network on all sampled 3D points, obtaining per-sample densities
+    and colors. I implement the standard discrete volume rendering equation with transmittance
+    computed via cumulative products. The rendered RGB is compared to the ground-truth pixel color
+    with MSE, and PSNR is logged for both training and validation.
+  </p>
+
+  <div class="card" style="margin-top:10px;">
+    <div class="caption" style="text-align:center; font-weight:600;">Volume rendering equation (discrete)</div>
+    <pre><code>Given:
+- σᵢ: density at sample i
+- cᵢ: color at sample i
+- Δᵢ: distance between samples i and i+1
+
+Opacity:
+αᵢ = 1 - exp(-σᵢ · Δᵢ)
+
+Transmittance:
+Tᵢ = Πⱼ&lt;i (1 - αⱼ)
+
+Rendered color:
+C = Σᵢ Tᵢ · αᵢ · cᵢ
+
+Implementation uses torch.exp, torch.cumprod, and broadcasting.</code></pre>
+  </div>
+
+  <div class="subheader-box" style="text-align:center; margin-top:18px;">Training progression on a validation view</div>
+  <div class="triplet">
+    <figure class="card">
+      <img src="out_lego/val_0001.png" alt="Validation render early">
+      <figcaption class="caption">Iteration 1</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="out_lego/val_0200.png" alt="Validation render mid">
+      <figcaption class="caption">Iteration 200</figcaption>
+    </figure>
+    <figure class="card">
+      <img src="out_lego/val_1000.png" alt="Validation render final">
+      <figcaption class="caption">Iteration 1000</figcaption>
+    </figure>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <figure>
+      <img src="out_lego/psnr_train_val.png" alt="Train & validation PSNR curves">
+      <figcaption class="caption">
+        Train and validation PSNR curves. The model reaches &gt; 23 dB on the validation set.
+      </figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 2 — NOVEL VIEWS ======================= -->
+  <h2 id="p2-novel" style="text-align:center; margin-top:48px;">Spherical Rendering: Novel View Video</h2>
+  <p>
+    After training, I froze the NeRF and rendered images at the 60 test camera poses
+    provided in <code>c2ws_test</code>, which trace out a sphere around the Lego scene.
+    Playing these frames as a GIF produces a smooth camera orbit that shows NeRF
+    has learned a consistent 3D representation.
+  </p>
+
+  <div class="card" style="margin-top:12px;">
+    <figure>
+      <img src="out_lego/novel_views.gif" alt="Lego novel view gif">
+      <figcaption class="caption">Spherical novel-view rendering of the Lego scene.</figcaption>
+    </figure>
+  </div>
+
+  <p style="margin-top:24px;">
+    Overall, this project made the connection between coordinate-based neural networks and 3D
+    scene reconstruction feel much more concrete. Part 1 was a warm-up that treated images as
+    continuous functions over 2D, and Part 2 extended this idea to a full volumetric radiance
+    field that can be rendered from any viewpoint.
+  </p>
+</div>
+</body>
+</html>

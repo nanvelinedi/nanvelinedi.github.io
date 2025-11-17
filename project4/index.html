@@ -141,11 +141,9 @@
   <div class="pair" style="margin-top:10px;">
     <figure class="card">
       <img src="0.3.png" alt="All calibrated camera frustums">
-      <figcaption class="caption">All calibrated camera frustums around my object.</figcaption>
     </figure>
     <figure class="card">
       <img src="0.3_2.png" alt="Close-up of a few camera frustums">
-      <figcaption class="caption">Closer look at a few cameras and sampled rays for debugging.</figcaption>
     </figure>
   </div>
 
@@ -177,7 +175,7 @@
   </div>
 
   <!-- ======================= PART 1 — FOX IMAGE ======================= -->
-  <h2 id="p1-fox" style="text-align:center; margin-top:32px;">Part 1.1: Training on the Fox Image</h2>
+  <div class="subheader-box" style="text-align:center;">Part 1.1: Training on the Fox Image</div>
   <p>
     I first trained the model on the provided fox image. At the very beginning, the network basically predicts something close to a flat average color, 
     so the reconstruction looks like a soft blob with no structure. As training goes on and it sees more sampled pixels, the fox’s silhouette appears, 
@@ -186,40 +184,39 @@
     architecture and encoding.
   </p>
 
-  <div class="subheader-box" style="text-align:center;">Training progression — fox</div>
   <div class="triplet">
     <figure class="card">
       <img src="recon_0001_fox.png" alt="Fox reconstruction at 1 iter">
-      <figcaption class="caption">1 iteration — basically a colored blob.</figcaption>
+      <figcaption class="caption">1 iteration</figcaption>
     </figure>
     <figure class="card">
       <img src="recon_0200_fox.png" alt="Fox reconstruction at 200 iters">
-      <figcaption class="caption">100 iterations — rough structure appears.</figcaption>
+      <figcaption class="caption">100 iterations</figcaption>
     </figure>
     <figure class="card">
       <img src="recon_0600.png" alt="Fox reconstruction at 600 iters">
-      <figcaption class="caption">600 iterations — more details and cleaner edges.</figcaption>
+      <figcaption class="caption">600 iterations</figcaption>
     </figure>
     <figure class="card">
       <img src="recon_1000_fox.png" alt="Fox reconstruction at 1000 iters">
-      <figcaption class="caption">1000 iterations — very close to the original.</figcaption>
+      <figcaption class="caption">1000 iterations</figcaption>
     </figure>
     <figure class="card">
       <img src="recon_final_fox.png" alt="Final fox reconstruction">
-      <figcaption class="caption">Final reconstruction.</figcaption>
+      <figcaption class="caption">Final reconstruction</figcaption>
     </figure>
     <figure class="card">
       <img src="fox.jpg" alt="Original fox image">
-      <figcaption class="caption">Original image.</figcaption>
+      <figcaption class="caption">Original image</figcaption>
     </figure>
     <figure>
       <img src="psnr_curve_fox.png" alt="PSNR curve for fox training">
-      <figcaption class="caption">PSNR curve for the fox image over training.</figcaption>
+      <figcaption class="caption">PSNR curve</figcaption>
     </figure>
   </div>
 
   <!-- ======================= PART 1 — OWN IMAGE ======================= -->
-  <h2 id="p1-own" style="text-align:center; margin-top:40px;">Part 1.2: Training on My Own Image</h2>
+  <div class="subheader-box" style="text-align:center;">Part 1.2: Training on My Own Image</div>  
   <p>
     Next, I repeated the setup on my own photo (<code>pizza.jpeg</code>). This image has way more high-frequency stuff going on 
     (cheese texture, toppings, plate edges, small lighting changes), so it’s harder to fit than the fox. Early on, the reconstruction looks very mushy 
@@ -228,36 +225,35 @@
     need both stronger positional encoding and a bit more training time.
   </p>
 
-  <div class="subheader-box" style="text-align:center;">Training progression — my image</div>
   <div class="triplet">
     <figure class="card">
       <img src="recon_0001_pizza.png" alt="Pizza reconstruction at 1 iters">
-      <figcaption class="caption">1 iteration — blurry blob.</figcaption>
+      <figcaption class="caption">1 iteration</figcaption>
     </figure>
     <figure class="card">
       <img src="recon_0100.png" alt="Pizza reconstruction at 100 iters">
-      <figcaption class="caption">100 iterations — plate shape starts to appear.</figcaption>
+      <figcaption class="caption">100 iterations</figcaption>
     </figure>
     <figure class="card">
       <img src="recon_1000.png" alt="Pizza reconstruction at 1000 iters">
-      <figcaption class="caption">1000 iterations — pizza is recognizable.</figcaption>
+      <figcaption class="caption">1000 iterations</figcaption>
     </figure>
     <figure class="card">
       <img src="recon_1500.png" alt="Pizza reconstruction at 1500 iters">
-      <figcaption class="caption">1500 iterations — sharper crust and toppings.</figcaption>
+      <figcaption class="caption">1500 iterations</figcaption>
     </figure>
     <figure class="card">
       <img src="recon_final.png" alt="Final pizza reconstruction">
-      <figcaption class="caption">Final reconstruction.</figcaption>
+      <figcaption class="caption">Final reconstruction</figcaption>
     </figure>
     <figure class="card">
       <img src="pizza.jpeg" alt="Original pizza image">
-      <figcaption class="caption">Original image.</figcaption>
+      <figcaption class="caption">Original image</figcaption>
     </figure>
   </div>
 
   <!-- ======================= PART 1 — SWEEP ======================= -->
-  <h2 id="p1-sweep" style="text-align:center; margin-top:44px;">Part 1.3: Hyperparameter Sweep — Width &amp; PE Frequency</h2>
+  <div class="subheader-box" style="text-align:center;">Part 1.3: Hyperparameter Sweep</div>  
   <p>
     I also tried a small hyperparameter sweep on the fox image. I changed the network width (64 vs 256) and the maximum positional encoding frequency 
     (L = 4 vs L = 10). With a narrow network and low-frequency encoding, the model mainly captures smooth structure and big color regions, and the image 
@@ -269,7 +265,7 @@
     <figure>
       <img src="grid_w-L.png" alt="2x2 grid for width and frequency sweep">
       <figcaption class="caption">
-        2×2 grid of final reconstructions: rows = width {64, 256}, columns = L {4, 10}.
+        2×2 grid of final reconstructions: rows = width {64, 256}, columns = L {4, 10}
       </figcaption>
     </figure>
   </div>
@@ -323,11 +319,11 @@
   <div class="pair" style="margin-top:10px;">
     <figure class="card">
       <img src="multi.jpeg" alt="Multi-camera rays and samples">
-      <figcaption class="caption">Multi-view visualization: all cameras plus a subset of sampled rays.</figcaption>
+      <figcaption class="caption">Multi-view visualization</figcaption>
     </figure>
     <figure class="card">
       <img src="single.jpeg" alt="Single camera rays and samples">
-      <figcaption class="caption">Single-camera visualization to double-check frustum and ray alignment.</figcaption>
+      <figcaption class="caption">Single-camera visualization</figcaption>
     </figure>
   </div>
 
@@ -377,27 +373,27 @@
   <div class="triplet">
     <figure class="card">
       <img src="val_0001.png" alt="Validation render early">
-      <figcaption class="caption">Iteration 1 — noisy and barely recognizable.</figcaption>
+      <figcaption class="caption">Iteration 1</figcaption>
     </figure>
     <figure class="card">
       <img src="val_0200.png" alt="Validation render mid">
-      <figcaption class="caption">Iteration 200 — overall shape appears.</figcaption>
+      <figcaption class="caption">Iteration 200</figcaption>
     </figure>
     <figure class="card">
       <img src="val_0400.png" alt="Validation render mid">
-      <figcaption class="caption">Iteration 400 — better colors and geometry.</figcaption>
+      <figcaption class="caption">Iteration 400</figcaption>
     </figure>
     <figure class="card">
       <img src="val_0600.png" alt="Validation render mid">
-      <figcaption class="caption">Iteration 600 — details sharpening.</figcaption>
+      <figcaption class="caption">Iteration 600</figcaption>
     </figure>
     <figure class="card">
       <img src="val_0800.png" alt="Validation render mid">
-      <figcaption class="caption">Iteration 800 — mostly stable.</figcaption>
+      <figcaption class="caption">Iteration 800</figcaption>
     </figure>
     <figure class="card">
       <img src="val_1000.png" alt="Validation render final">
-      <figcaption class="caption">Iteration 1000 — clean final view.</figcaption>
+      <figcaption class="caption">Iteration 1000</figcaption>
     </figure>
   </div>
 
@@ -405,8 +401,7 @@
     <figure>
       <img src="psnr_curve.png" alt="Train & validation PSNR curves">
       <figcaption class="caption">
-        Train and validation PSNR curves. The model reaches over 23 dB on the validation set.
-      </figcaption>
+        Train and validation PSNR curves</figcaption>
     </figure>
   </div>
 
@@ -422,7 +417,7 @@
   <div class="card" style="margin-top:12px;">
     <figure>
       <img src="novel_views.gif" alt="Lego novel view gif">
-      <figcaption class="caption">Spherical novel-view rendering of the Lego scene.</figcaption>
+      <figcaption class="caption">Spherical novel-view rendering of the Lego scene</figcaption>
     </figure>
   </div>
 
@@ -460,22 +455,22 @@
   <div class="triplet">
     <figure class="card">
       <img src="mydata_val_0500.png" alt="My object NeRF at 500 iters">
-      <figcaption class="caption">Iteration 500 — very blurry blob with low PSNR.</figcaption>
+      <figcaption class="caption">Iteration 500</figcaption>
     </figure>
     <figure class="card">
-      <img src="mydata_val_2000.png" alt="My object NeRF at 2000 iters">
-      <figcaption class="caption">Iteration 2000 — main shape and colors show up.</figcaption>
+      <img src="mydata_val_1500.png" alt="My object NeRF at 1500 iters">
+      <figcaption class="caption">Iteration 1500</figcaption>
     </figure>
     <figure class="card">
       <img src="mydata_val_3000.png" alt="My object NeRF at 3000 iters">
-      <figcaption class="caption">Iteration 3000 — sharper details and cleaner background.</figcaption>
+      <figcaption class="caption">Iteration 3000</figcaption>
     </figure>
   </div>
 
   <div class="pair" style="margin-top:14px;">
     <figure class="card">
       <img src="mydata_loss_curve.png" alt="Training loss curve on my object">
-      <figcaption class="caption">Training loss over iterations for my object.</figcaption>
+      <figcaption class="caption">Training loss over iterations for my object</figcaption>
     </figure>
   </div>
 
@@ -483,9 +478,7 @@
     <figure>
       <img src="mydata_orbit.gif" alt="Orbit GIF around my own object">
       <figcaption class="caption">
-        Orbit GIF of a camera circling my object using the starter <code>look_at_origin</code> and
-        <code>rot_x</code> helpers. The views are novel but stay stable and consistent.
-      </figcaption>
+        Orbit GIF of a camera circling my object</figcaption>
     </figure>
   </div>
 
@@ -498,6 +491,7 @@
   </p>
 
   <!-- ======================= WRAP-UP ======================= -->
+  <h2 id="p26-mydata" style="text-align:center; margin-top:56px;">Conclusion</h2>
   <p style="margin-top:24px;">
     Overall, this project made the connection between coordinate-based neural networks and 3D scene reconstruction feel way more concrete. 
     Part 1 was a nice warm-up where we treated images as continuous 2D functions and used a small MLP to repaint them from coordinates alone. 

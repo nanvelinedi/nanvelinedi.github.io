@@ -166,7 +166,7 @@
   </p>
 
   <div class="card" style="margin-top:16px;">
-    <div class="caption" style="text-align:center; font-weight:600;">Model architecture (high-level)</div>
+    <div class="caption" style="text-align:center; font-weight:600;">Model architecture </div>
     <p>
       My 2D neural field uses four hidden layers, each with 128 channels. After each hidden layer I apply a ReLU nonlinearity, and at the end I output 
       three values for RGB and squash them with a sigmoid so the colors stay in a reasonable range. For positional encoding, I expand each coordinate into 
@@ -343,7 +343,7 @@
   </p>
 
   <div class="card">
-    <div class="caption" style="text-align:center; font-weight:600;">NeRF architecture (high-level)</div>
+    <div class="caption" style="text-align:center; font-weight:600;">NeRF architecture</div>
     <p>
       In practice, my NeRF uses 8 hidden layers with width 256 for the position stream. ReLU is applied after each hidden layer. 
       The skip connection happens halfway through the network, where I concatenate the encoded position back into the feature stream. 

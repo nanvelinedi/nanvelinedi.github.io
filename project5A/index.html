@@ -1,1 +1,692 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>CS180 — Project 5A: Diffusion Models</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    h1 { text-align: center; }
+    .container { margin: 0 auto; padding: 60px 12%; max-width: 1100px; }
+    figure { text-align: center; }
+    img { display: inline-block; max-width: 100%; height: auto; }
+    body { font-family: 'Inter', sans-serif; line-height: 1.55; }
+    code {
+      background-color: #f2f2f2; padding: 2px 4px; border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    }
+    details { margin: 14px 0; }
+    summary {
+      cursor: pointer; padding: 10px 14px; background-color: #f2f2f2; border: 1px solid #ccc;
+      border-radius: 8px; font-weight: 600;
+    }
+
+    /* banners & links */
+    .top-banner {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 14px; margin: 1.5em 0 2.2em 0;
+      font-weight: 600; font-size: 1rem;
+    }
+    .top-banner a {
+      color: #8b0000; text-decoration: none; padding: 8px 14px; border-radius: 10px;
+      border: 1px solid #f3b8c6;
+    }
+    .top-banner a:hover { color: #ec7699; background-color: #fce4e4; animation: jello 1.3s ease-in-out; }
+    a:link { color: #8b0000; }
+    a:visited { color: #ec7699; }
+    a:hover { color: #ec7699; }
+    a:active { color: #8b0000; }
+
+    /* section headers */
+    .subheader-box {
+      background-color: #f2f2f2; border-left: 4px solid #444; padding: 12px 16px;
+      margin: 1em 0; border-radius: 8px; font-weight: 600;
+    }
+    .question-box {
+      padding: 10px 16px; margin: 1em 0; border-radius: 8px; font-weight: 600;
+      color: #8b0000; background-color: #fce4e4;
+    }
+
+    /* grids & galleries */
+    .pair { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .triplet { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 900px) {
+      .pair { grid-template-columns: 1fr 1fr; }
+      .triplet { grid-template-columns: 1fr 1fr 1fr; }
+      .grid-3 { grid-template-columns: repeat(3, 1fr); }
+      .grid-4 { grid-template-columns: repeat(4, 1fr); }
+    }
+    .card {
+      border: 1px solid #e8e8e8; border-radius: 12px; padding: 12px; background: #fff;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+    }
+    .caption { text-align: center; margin-top: 8px; color: #555; font-size: 0.95rem; }
+
+    /* tables */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; margin: 16px 0 28px 0; border: 1px solid #ddd; border-radius: 12px; overflow: hidden; }
+    th, td { border: none; padding: 10px 12px; text-align: left; vertical-align: top; }
+    th { background-color: #fadee0; }
+    .results-table td img { width: 260px; height: 180px; object-fit: cover; border-radius: 8px; display: block; }
+
+    /* code blocks */
+    pre { background: #f7f7f7; border: 1px solid #ddd; border-radius: 10px; padding: 12px 14px; }
+    pre code { white-space: pre-wrap; }
+
+    @keyframes jello {
+      0% { transform: none; }
+      15% { transform: skewX(-12deg) skewY(-12deg); }
+      30% { transform: skewX(6deg) skewY(6deg); }
+      45% { transform: skewX(-3deg) skewY(-3deg); }
+      60% { transform: skewX(1deg) skewY(1deg); }
+      75% { transform: skewX(-0.5deg) skewY(-0.5deg); }
+      100% { transform: none; }
+    }
+
+    @media print {
+      .top-banner { display: none; }
+      a[href^="file://"], .MathJax_Message, .mjx-chtml, .MathJax { display: none !important; }
+      a::after { content: "" !important; }
+      @page { margin: 1in 1in; }
+      .container { padding: 0; }
+      pre { white-space: pre-wrap !important; overflow-x: visible !important; max-width: 100% !important; }
+    }
+
+    /* bigger “before/after” display */
+    .b4img {
+      width: 100%;
+      height: 420px;
+      object-fit: contain;
+      background: #000;
+      border-radius: 8px;
+    }
+    @media (max-width: 899px) {
+      .b4img { height: 320px; }
+    }
+  </style>
+</head>
+
+<body>
+<div class="container">
+  <h1>CS180 Project 5A: Diffusion Models</h1>
+  <h2 style="text-align:center">UC Berkeley • Fall 2025</h2>
+  <h3 style="text-align:center">Nandini Velinedi</h3>
+
+  <div class="top-banner">
+    <a href="../index.html">← Back to Portfolio</a>
+    <!-- Update this when you publish -->
+    <a href="https://nanvelinedi.github.io/project5A/" target="_blank" rel="noopener">Website</a>
+  </div>
+
+  <p>
+    In this project, I worked with diffusion models and built up the core pieces step-by-step:
+    adding noise (forward process), denoising with a UNet, iterative denoising, classifier-free guidance,
+    and then fun editing tricks like image edits at different noise levels, inpainting, flip illusions, and hybrid images.
+  </p>
+
+  <!-- ======================= PART 0 ======================= -->
+  <h2 id="p0" style="text-align:center; margin-top:28px;">Part 0: Text Prompts + Embeddings + Sampling</h2>
+
+  <div class="question-box">
+    Deliverables: prompts + embeddings • 3 generated images w/ captions • try ≥2 num_inference_steps values • report random seed
+  </div>
+
+  <div class="subheader-box">Random seed (used for everything below)</div>
+  <p>
+    <b>Seed:</b> <code>PUT_YOUR_SEED_HERE</code>
+  </p>
+
+  <div class="subheader-box">My prompt list + embeddings</div>
+  <p>
+    I came up with a set of prompts and generated their text embeddings. I tried to mix “easy” prompts (simple objects)
+    with more detailed prompts (style + lighting + environment) to see what the model does.
+  </p>
+
+  <details open>
+    <summary>Prompt list (replace with yours)</summary>
+    <ul>
+      <li><code>a high quality picture</code></li>
+      <li><code>an oil painting of a snowy mountain village</code></li>
+      <li><code>a photo of the amalfi coast</code></li>
+      <li><code>a photo of a man</code></li>
+      <li><code>a photo of a hipster barista</code></li>
+      <li><code>a photo of a dog</code></li>
+      <li><code>an oil painting of people around a campfire</code></li>
+      <li><code>an oil painting of an old man</code></li>
+      <li><code>a lithograph of waterfalls</code></li>
+      <li><code>a lithograph of a skull</code></li>
+      <li><code>a man wearing a hat</code></li>
+      <li><code>a high quality photo</code></li>
+      <li><code>a rocket ship</code></li>
+      <li><code>a pencil</code></li>
+    </ul>
+    <p style="margin-top:8px;">
+      <i>Embeddings saved as:</i> <code>YOUR_PROMPTS_FILE.pth</code>
+    </p>
+  </details>
+
+  <div class="subheader-box">3 prompt → image generations (with different num_inference_steps)</div>
+  <p>
+    Below are 3 prompts I picked and generated images for. I made sure to try at least 2 different
+    <code>num_inference_steps</code> values to see how it affects quality (sharpness, structure, weird artifacts, etc.).
+  </p>
+
+  <div class="grid-3">
+    <figure class="card">
+      <img src="p0_prompt1_steps20.png" alt="Prompt 1 generation (steps=20)">
+      <figcaption class="caption">
+        <b>Prompt:</b> <code>YOUR_PROMPT_1</code><br/>
+        <b>num_inference_steps:</b> <code>20</code>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <img src="p0_prompt1_steps50.png" alt="Prompt 1 generation (steps=50)">
+      <figcaption class="caption">
+        <b>Prompt:</b> <code>YOUR_PROMPT_1</code><br/>
+        <b>num_inference_steps:</b> <code>50</code>
+      </figcaption>
+    </figure>
+    <figure class="card">
+      <img src="p0_prompt2_steps50.png" alt="Prompt 2 generation (steps=50)">
+      <figcaption class="caption">
+        <b>Prompt:</b> <code>YOUR_PROMPT_2</code><br/>
+        <b>num_inference_steps:</b> <code>50</code>
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="card" style="margin-top:14px;">
+    <div class="caption" style="text-align:center; font-weight:600;">Reflection (Part 0)</div>
+    <p>
+      <b>Quality + relation to prompt:</b> WRITE YOUR REFLECTION HERE.  
+      (Example stuff to mention: if the model nailed the style, if it ignored key words, if it added random objects,
+      if higher steps looked cleaner but slower, if faces/hands looked weird, etc.)
+    </p>
+  </div>
+
+  <!-- ======================= PART 1.1 ======================= -->
+  <h2 id="p11" style="text-align:center; margin-top:44px;">Part 1.1: Forward Diffusion (Add Noise)</h2>
+
+  <div class="question-box">
+    Deliverables: implement <code>noisy_im = forward(im, t)</code> • show Campanile at noise levels <code>[250, 500, 750]</code>
+  </div>
+
+  <div class="subheader-box">Implementation: forward(im, t)</div>
+  <details>
+    <summary>Code snippet (paste your forward function)</summary>
+    <pre><code># TODO: paste your forward(im, t) implementation here</code></pre>
+  </details>
+
+  <div class="subheader-box">Campanile with different noise levels</div>
+  <div class="grid-4">
+    <figure class="card">
+      <img class="b4img" src="campanile_original.png" alt="Original Campanile">
+      <figcaption class="caption">Original</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_noisy_t250.png" alt="Noisy Campanile t=250">
+      <figcaption class="caption"><code>t = 250</code></figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_noisy_t500.png" alt="Noisy Campanile t=500">
+      <figcaption class="caption"><code>t = 500</code></figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_noisy_t750.png" alt="Noisy Campanile t=750">
+      <figcaption class="caption"><code>t = 750</code></figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 1.2 ======================= -->
+  <h2 id="p12" style="text-align:center; margin-top:44px;">Part 1.2: Gaussian Denoising</h2>
+
+  <div class="question-box">
+    Deliverables: for each noisy Campanile image, show your best Gaussian-denoised result side-by-side
+  </div>
+
+  <p>
+    For each noise level, I tried Gaussian blurring to see how much it helps. It usually reduces noise,
+    but it also destroys details and edges pretty fast.
+  </p>
+
+  <div class="subheader-box">Gaussian denoise results (side-by-side)</div>
+  <div class="triplet">
+    <figure class="card">
+      <img class="b4img" src="campanile_noisy_t250.png" alt="Noisy t=250">
+      <figcaption class="caption"><b>Noisy</b> (<code>t=250</code>)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_gauss_t250.png" alt="Gaussian denoise t=250">
+      <figcaption class="caption"><b>Gaussian denoise</b> (<code>t=250</code>)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_gauss_params_t250.png" alt="Params t=250">
+      <figcaption class="caption">Blur params / notes (optional)</figcaption>
+    </figure>
+  </div>
+
+  <div class="triplet">
+    <figure class="card">
+      <img class="b4img" src="campanile_noisy_t500.png" alt="Noisy t=500">
+      <figcaption class="caption"><b>Noisy</b> (<code>t=500</code>)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_gauss_t500.png" alt="Gaussian denoise t=500">
+      <figcaption class="caption"><b>Gaussian denoise</b> (<code>t=500</code>)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_gauss_params_t500.png" alt="Params t=500">
+      <figcaption class="caption">Blur params / notes (optional)</figcaption>
+    </figure>
+  </div>
+
+  <div class="triplet">
+    <figure class="card">
+      <img class="b4img" src="campanile_noisy_t750.png" alt="Noisy t=750">
+      <figcaption class="caption"><b>Noisy</b> (<code>t=750</code>)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_gauss_t750.png" alt="Gaussian denoise t=750">
+      <figcaption class="caption"><b>Gaussian denoise</b> (<code>t=750</code>)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_gauss_params_t750.png" alt="Params t=750">
+      <figcaption class="caption">Blur params / notes (optional)</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 1.3 ======================= -->
+  <h2 id="p13" style="text-align:center; margin-top:44px;">Part 1.3: One-Step Denoising with the UNet</h2>
+
+  <div class="question-box">
+    Deliverables (for t = [250, 500, 750]): add noise • estimate noise with <code>stage_1.unet</code> • remove noise • visualize original/noisy/estimate
+  </div>
+
+  <p>
+    Here I did “single-step” denoising: I pass the noisy image through the UNet to estimate the noise,
+    then subtract it to estimate the clean image. This works a bit, but it’s not as good as iterative denoising.
+  </p>
+
+  <div class="subheader-box">Results: original vs noisy vs UNet denoised (single-step)</div>
+  <div class="grid-3">
+    <figure class="card">
+      <img class="b4img" src="p13_t250_original.png" alt="t=250 original">
+      <figcaption class="caption">Original</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p13_t250_noisy.png" alt="t=250 noisy">
+      <figcaption class="caption">Noisy (<code>t=250</code>)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p13_t250_denoised.png" alt="t=250 denoised">
+      <figcaption class="caption">Estimated clean (single-step)</figcaption>
+    </figure>
+
+    <figure class="card">
+      <img class="b4img" src="p13_t500_original.png" alt="t=500 original">
+      <figcaption class="caption">Original</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p13_t500_noisy.png" alt="t=500 noisy">
+      <figcaption class="caption">Noisy (<code>t=500</code>)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p13_t500_denoised.png" alt="t=500 denoised">
+      <figcaption class="caption">Estimated clean (single-step)</figcaption>
+    </figure>
+
+    <figure class="card">
+      <img class="b4img" src="p13_t750_original.png" alt="t=750 original">
+      <figcaption class="caption">Original</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p13_t750_noisy.png" alt="t=750 noisy">
+      <figcaption class="caption">Noisy (<code>t=750</code>)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p13_t750_denoised.png" alt="t=750 denoised">
+      <figcaption class="caption">Estimated clean (single-step)</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 1.4 ======================= -->
+  <h2 id="p14" style="text-align:center; margin-top:44px;">Part 1.4: Iterative Denoising (Strided Timesteps)</h2>
+
+  <div class="question-box">
+    Deliverables: i_start=10 • create strided_timesteps (990→0 stride 30) • init scheduler • implement iterative_denoise • show every 5th loop • compare final vs single-step vs gaussian
+  </div>
+
+  <div class="subheader-box">Strided timesteps + scheduler setup</div>
+  <details>
+    <summary>Code snippet (paste your strided timesteps + set_timesteps)</summary>
+    <pre><code># i_start = 10
+# strided_timesteps = ...
+# stage_1.scheduler.set_timesteps(timesteps=strided_timesteps)
+</code></pre>
+  </details>
+
+  <div class="subheader-box">Implementation: iterative_denoise</div>
+  <details>
+    <summary>Code snippet (paste your iterative_denoise function)</summary>
+    <pre><code># TODO: paste your iterative_denoise implementation here</code></pre>
+  </details>
+
+  <div class="subheader-box">Noisy Campanile every 5th denoising step</div>
+  <p>
+    These are snapshots every 5th loop. It should start super noisy and gradually clean up.
+  </p>
+  <div class="grid-4">
+    <figure class="card">
+      <img class="b4img" src="iter_step_00.png" alt="Iter step 0">
+      <figcaption class="caption">Loop 0</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="iter_step_05.png" alt="Iter step 5">
+      <figcaption class="caption">Loop 5</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="iter_step_10.png" alt="Iter step 10">
+      <figcaption class="caption">Loop 10</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="iter_step_15.png" alt="Iter step 15">
+      <figcaption class="caption">Loop 15</figcaption>
+    </figure>
+  </div>
+
+  <div class="subheader-box">Final comparisons: iterative vs single-step vs gaussian</div>
+  <div class="grid-4">
+    <figure class="card">
+      <img class="b4img" src="campanile_original.png" alt="Original">
+      <figcaption class="caption">Original</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_iterative_final.png" alt="Iterative final">
+      <figcaption class="caption"><b>Iterative denoise</b> (best)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_single_step.png" alt="Single step">
+      <figcaption class="caption"><b>Single denoise step</b> (worse)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="campanile_gaussian_best.png" alt="Gaussian">
+      <figcaption class="caption"><b>Gaussian blur</b> (blurry)</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 1.5 ======================= -->
+  <h2 id="p15" style="text-align:center; margin-top:44px;">Part 1.5: Sampling (Unconditional)</h2>
+
+  <div class="question-box">
+    Deliverables: show 5 sampled images
+  </div>
+
+  <div class="subheader-box">5 samples</div>
+  <div class="grid-4">
+    <figure class="card"><img src="p15_sample1.png" alt="sample 1"><figcaption class="caption">Sample 1</figcaption></figure>
+    <figure class="card"><img src="p15_sample2.png" alt="sample 2"><figcaption class="caption">Sample 2</figcaption></figure>
+    <figure class="card"><img src="p15_sample3.png" alt="sample 3"><figcaption class="caption">Sample 3</figcaption></figure>
+    <figure class="card"><img src="p15_sample4.png" alt="sample 4"><figcaption class="caption">Sample 4</figcaption></figure>
+    <figure class="card"><img src="p15_sample5.png" alt="sample 5"><figcaption class="caption">Sample 5</figcaption></figure>
+  </div>
+
+  <!-- ======================= PART 1.6 ======================= -->
+  <h2 id="p16" style="text-align:center; margin-top:44px;">Part 1.6: Classifier-Free Guidance (CFG)</h2>
+
+  <div class="question-box">
+    Deliverables: implement iterative_denoise_cfg • show 5 images of <code>"a high quality photo"</code> with a CFG scale of ___
+  </div>
+
+  <div class="subheader-box">Implementation: iterative_denoise_cfg</div>
+  <details>
+    <summary>Code snippet (paste your iterative_denoise_cfg)</summary>
+    <pre><code># TODO: paste your iterative_denoise_cfg implementation here</code></pre>
+  </details>
+
+  <div class="subheader-box">CFG samples</div>
+  <p>
+    <b>Prompt:</b> <code>a high quality photo</code><br/>
+    <b>CFG scale:</b> <code>PUT_SCALE_HERE</code>
+  </p>
+
+  <div class="grid-4">
+    <figure class="card"><img src="p16_cfg1.png" alt="cfg 1"><figcaption class="caption">CFG 1</figcaption></figure>
+    <figure class="card"><img src="p16_cfg2.png" alt="cfg 2"><figcaption class="caption">CFG 2</figcaption></figure>
+    <figure class="card"><img src="p16_cfg3.png" alt="cfg 3"><figcaption class="caption">CFG 3</figcaption></figure>
+    <figure class="card"><img src="p16_cfg4.png" alt="cfg 4"><figcaption class="caption">CFG 4</figcaption></figure>
+    <figure class="card"><img src="p16_cfg5.png" alt="cfg 5"><figcaption class="caption">CFG 5</figcaption></figure>
+  </div>
+
+  <!-- ======================= PART 1.7 ======================= -->
+  <h2 id="p17" style="text-align:center; margin-top:44px;">Part 1.7: Image Editing via Noise Levels (Campanile + 2 personal images)</h2>
+
+  <div class="question-box">
+    Deliverables: edits at noise levels <code>[1, 3, 5, 7, 10, 20]</code> using condition <code>"a high quality photo"</code> • Campanile + 2 own images
+  </div>
+
+  <div class="subheader-box">Campanile edits (noise levels)</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p17_camp_t1.png"  alt="t1"><figcaption class="caption">Noise level 1</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_camp_t3.png"  alt="t3"><figcaption class="caption">Noise level 3</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_camp_t5.png"  alt="t5"><figcaption class="caption">Noise level 5</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_camp_t7.png"  alt="t7"><figcaption class="caption">Noise level 7</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_camp_t10.png" alt="t10"><figcaption class="caption">Noise level 10</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_camp_t20.png" alt="t20"><figcaption class="caption">Noise level 20</figcaption></figure>
+  </div>
+
+  <div class="subheader-box">My image #1 edits</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p17_my1_t1.png"  alt="my1 t1"><figcaption class="caption">1</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my1_t3.png"  alt="my1 t3"><figcaption class="caption">3</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my1_t5.png"  alt="my1 t5"><figcaption class="caption">5</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my1_t7.png"  alt="my1 t7"><figcaption class="caption">7</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my1_t10.png" alt="my1 t10"><figcaption class="caption">10</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my1_t20.png" alt="my1 t20"><figcaption class="caption">20</figcaption></figure>
+  </div>
+
+  <div class="subheader-box">My image #2 edits</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p17_my2_t1.png"  alt="my2 t1"><figcaption class="caption">1</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my2_t3.png"  alt="my2 t3"><figcaption class="caption">3</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my2_t5.png"  alt="my2 t5"><figcaption class="caption">5</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my2_t7.png"  alt="my2 t7"><figcaption class="caption">7</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my2_t10.png" alt="my2 t10"><figcaption class="caption">10</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p17_my2_t20.png" alt="my2 t20"><figcaption class="caption">20</figcaption></figure>
+  </div>
+
+  <!-- ======================= PART 1.7.1 ======================= -->
+  <h2 id="p171" style="text-align:center; margin-top:44px;">Part 1.7.1: Web Image + Hand-Drawn Images Editing</h2>
+
+  <div class="question-box">
+    Deliverables: 1 web image edits (noise levels) • 2 hand-drawn images edits (noise levels)
+  </div>
+
+  <div class="subheader-box">Web image edits</div>
+  <p>
+    <b>Source image:</b> (put citation/link in your GitHub README if needed, or mention it here)
+  </p>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p171_web_t1.png"  alt="web t1"><figcaption class="caption">1</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_web_t3.png"  alt="web t3"><figcaption class="caption">3</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_web_t5.png"  alt="web t5"><figcaption class="caption">5</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_web_t7.png"  alt="web t7"><figcaption class="caption">7</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_web_t10.png" alt="web t10"><figcaption class="caption">10</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_web_t20.png" alt="web t20"><figcaption class="caption">20</figcaption></figure>
+  </div>
+
+  <div class="subheader-box">Hand-drawn image #1 edits</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p171_hand1_t1.png"  alt="hand1 t1"><figcaption class="caption">1</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand1_t3.png"  alt="hand1 t3"><figcaption class="caption">3</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand1_t5.png"  alt="hand1 t5"><figcaption class="caption">5</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand1_t7.png"  alt="hand1 t7"><figcaption class="caption">7</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand1_t10.png" alt="hand1 t10"><figcaption class="caption">10</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand1_t20.png" alt="hand1 t20"><figcaption class="caption">20</figcaption></figure>
+  </div>
+
+  <div class="subheader-box">Hand-drawn image #2 edits</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p171_hand2_t1.png"  alt="hand2 t1"><figcaption class="caption">1</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand2_t3.png"  alt="hand2 t3"><figcaption class="caption">3</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand2_t5.png"  alt="hand2 t5"><figcaption class="caption">5</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand2_t7.png"  alt="hand2 t7"><figcaption class="caption">7</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand2_t10.png" alt="hand2 t10"><figcaption class="caption">10</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p171_hand2_t20.png" alt="hand2 t20"><figcaption class="caption">20</figcaption></figure>
+  </div>
+
+  <!-- ======================= PART 1.7.2 ======================= -->
+  <h2 id="p172" style="text-align:center; margin-top:44px;">Part 1.7.2: Inpainting</h2>
+
+  <div class="question-box">
+    Deliverables: implement inpaint • Campanile inpainted • 2 own images inpainted • use paper results as inspiration
+  </div>
+
+  <div class="subheader-box">Implementation: inpaint()</div>
+  <details>
+    <summary>Code snippet (paste your inpaint function)</summary>
+    <pre><code># TODO: paste your inpaint implementation here</code></pre>
+  </details>
+
+  <div class="subheader-box">Campanile inpainting</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p172_camp_original.png" alt="camp original"><figcaption class="caption">Original</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p172_camp_mask.png" alt="camp mask"><figcaption class="caption">Mask</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p172_camp_inpaint.png" alt="camp inpaint"><figcaption class="caption">Inpainted</figcaption></figure>
+  </div>
+
+  <div class="subheader-box">My image #1 inpainting</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p172_my1_original.png" alt="my1 original"><figcaption class="caption">Original</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p172_my1_mask.png" alt="my1 mask"><figcaption class="caption">Mask</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p172_my1_inpaint.png" alt="my1 inpaint"><figcaption class="caption">Inpainted</figcaption></figure>
+  </div>
+
+  <div class="subheader-box">My image #2 inpainting</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p172_my2_original.png" alt="my2 original"><figcaption class="caption">Original</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p172_my2_mask.png" alt="my2 mask"><figcaption class="caption">Mask</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p172_my2_inpaint.png" alt="my2 inpaint"><figcaption class="caption">Inpainted</figcaption></figure>
+  </div>
+
+  <!-- ======================= PART 1.7.3 ======================= -->
+  <h2 id="p173" style="text-align:center; margin-top:44px;">Part 1.7.3: More Edits (Same Procedure)</h2>
+
+  <div class="question-box">
+    Deliverables: Campanile edits at noise levels <code>[1, 3, 5, 7, 10, 20]</code> • 2 own images edits (same procedure)
+  </div>
+
+  <div class="subheader-box">Campanile edits (1.7.3)</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p173_camp_t1.png"  alt="p173 camp 1"><figcaption class="caption">1</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_camp_t3.png"  alt="p173 camp 3"><figcaption class="caption">3</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_camp_t5.png"  alt="p173 camp 5"><figcaption class="caption">5</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_camp_t7.png"  alt="p173 camp 7"><figcaption class="caption">7</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_camp_t10.png" alt="p173 camp 10"><figcaption class="caption">10</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_camp_t20.png" alt="p173 camp 20"><figcaption class="caption">20</figcaption></figure>
+  </div>
+
+  <div class="subheader-box">My image #1 edits (1.7.3)</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p173_my1_t1.png"  alt="p173 my1 1"><figcaption class="caption">1</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my1_t3.png"  alt="p173 my1 3"><figcaption class="caption">3</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my1_t5.png"  alt="p173 my1 5"><figcaption class="caption">5</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my1_t7.png"  alt="p173 my1 7"><figcaption class="caption">7</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my1_t10.png" alt="p173 my1 10"><figcaption class="caption">10</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my1_t20.png" alt="p173 my1 20"><figcaption class="caption">20</figcaption></figure>
+  </div>
+
+  <div class="subheader-box">My image #2 edits (1.7.3)</div>
+  <div class="grid-3">
+    <figure class="card"><img class="b4img" src="p173_my2_t1.png"  alt="p173 my2 1"><figcaption class="caption">1</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my2_t3.png"  alt="p173 my2 3"><figcaption class="caption">3</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my2_t5.png"  alt="p173 my2 5"><figcaption class="caption">5</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my2_t7.png"  alt="p173 my2 7"><figcaption class="caption">7</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my2_t10.png" alt="p173 my2 10"><figcaption class="caption">10</figcaption></figure>
+    <figure class="card"><img class="b4img" src="p173_my2_t20.png" alt="p173 my2 20"><figcaption class="caption">20</figcaption></figure>
+  </div>
+
+  <!-- ======================= PART 1.8 ======================= -->
+  <h2 id="p18" style="text-align:center; margin-top:44px;">Part 1.8: Visual Anagrams (Flip Illusions)</h2>
+
+  <div class="question-box">
+    Deliverables: implement visual_anagrams • 2 flip illusions that change when flipped upside down
+  </div>
+
+  <div class="subheader-box">Implementation: visual_anagrams</div>
+  <details>
+    <summary>Code snippet (paste your visual_anagrams / make_flip_illusion)</summary>
+    <pre><code># TODO: paste your visual anagrams implementation here</code></pre>
+  </details>
+
+  <div class="subheader-box">Illusion #1</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="b4img" src="p18_illusion1_upright.png" alt="illusion1 upright">
+      <figcaption class="caption">Upright</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p18_illusion1_flipped.png" alt="illusion1 flipped">
+      <figcaption class="caption">Flipped</figcaption>
+    </figure>
+  </div>
+
+  <div class="subheader-box">Illusion #2</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="b4img" src="p18_illusion2_upright.png" alt="illusion2 upright">
+      <figcaption class="caption">Upright</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p18_illusion2_flipped.png" alt="illusion2 flipped">
+      <figcaption class="caption">Flipped</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= PART 1.9 ======================= -->
+  <h2 id="p19" style="text-align:center; margin-top:44px;">Part 1.9: Hybrid Images</h2>
+
+  <div class="question-box">
+    Deliverables: implement make_hybrids • 2 hybrid images of your choosing
+  </div>
+
+  <div class="subheader-box">Implementation: make_hybrids</div>
+  <details>
+    <summary>Code snippet (paste your make_hybrids function)</summary>
+    <pre><code># TODO: paste your make_hybrids implementation here</code></pre>
+  </details>
+
+  <div class="subheader-box">Hybrid #1</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="b4img" src="p19_hybrid1_near.png" alt="hybrid1 near">
+      <figcaption class="caption">Close up (looks like: ___)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p19_hybrid1_far.png" alt="hybrid1 far">
+      <figcaption class="caption">From far away / smaller (looks like: ___)</figcaption>
+    </figure>
+  </div>
+
+  <div class="subheader-box">Hybrid #2</div>
+  <div class="pair">
+    <figure class="card">
+      <img class="b4img" src="p19_hybrid2_near.png" alt="hybrid2 near">
+      <figcaption class="caption">Close up (looks like: ___)</figcaption>
+    </figure>
+    <figure class="card">
+      <img class="b4img" src="p19_hybrid2_far.png" alt="hybrid2 far">
+      <figcaption class="caption">From far away / smaller (looks like: ___)</figcaption>
+    </figure>
+  </div>
+
+  <!-- ======================= WRAP-UP ======================= -->
+  <h2 style="text-align:center; margin-top:56px;">Conclusion</h2>
+  <p style="margin-top:24px;">
+    WRITE A SHORT WRAP-UP HERE.  
+    (Mention what surprised you, what worked best, and what was hardest — like CFG sensitivity, artifacts,
+    how noise level controls edit strength, inpainting limitations, etc.)
+  </p>
+
+</div>
+</body>
+</html>
 
